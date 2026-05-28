@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Evrak Gönder{% endblock %}
+{% block page_title %}Site Admine Evrak Gönder{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Alıcı Site Admin <span class="text-red-500">*</span></label>
+                <select name="target_user_id" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Site admin seçin...</option>
+                    {% for u in site_adminler %}
+                    <option value="{{ u.id }}">{{ u.full_name or u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
+                <select name="category" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Kategori seçin...</option>
+                    {% for kat in kategoriler %}
+                    <option value="{{ kat }}">{{ kat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Başlık <span class="text-red-500">*</span></label>
+                <input type="text" name="title" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Dosya <span class="text-red-500">*</span></label>
+                <input type="file" name="dosya" required
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <p class="text-xs text-gray-400 mt-1">PDF, Word, Excel, resim dosyaları kabul edilir.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit"
+                        class="flex-1 bg-green-600 text-white text-sm py-2.5 rounded-lg hover:bg-green-700 font-medium">
+                    <i class="fa-solid fa-paper-plane mr-1"></i> Gönder
+                </button>
+                <a href="{{ url_for('super_admin.admin_evraklar') }}"
+                   class="flex-1 bg-gray-100 text-gray-700 text-sm py-2.5 rounded-lg hover:bg-gray-200 text-center">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

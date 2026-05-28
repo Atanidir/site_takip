@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Aidat Raporu{% endblock %}
+{% block page_title %}Aidat Raporu{% endblock %}
+
+{% block content %}
+{% set months = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+
+<!-- Rapor Linkleri -->
+<div class="flex gap-2 mb-5">
+    <a href="{{ url_for('site_admin.report_aidat') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white">Aidat</a>
+    <a href="{{ url_for('site_admin.report_gider') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-purple-400">Gider</a>
+    <a href="{{ url_for('site_admin.report_sakin') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-purple-400">Sakin</a>
+</div>
+
+<!-- Filtreler -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Yıl</label>
+            <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                {% for y in range(2023, 2028) %}
+                <option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Ay</label>
+            <select name="month" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {{ 'selected' if i == month }}>{{ months[i] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Blok</label>
+            <select name="blok_id" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                <option value="">Tüm Bloklar</option>
+                {% for b in blocks %}
+                <option value="{{ b.id }}" {{ 'selected' if blok_id == b.id|string }}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Durum</label>
+            <select name="durum" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                <option value="tumu"    {{ 'selected' if durum == 'tumu' }}>Tümü</option>
+                <option value="odenen"  {{ 'selected' if durum == 'odenen' }}>Ödenenler</option>
+                <option value="bekleyen" {{ 'selected' if durum == 'bekleyen' }}>Bekleyenler</option>
+                <option value="geciken" {{ 'selected' if durum == 'geciken' }}>Gecikanler</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-purple-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-purple-700">
+            <i class="fa-solid fa-filter mr-1"></i> Filtrele
+        </button>
+    </form>
+</div>
+
+<!-- Özet -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+    {% for label, val, color in [
+        ('Toplam Aidat', toplam, 'blue'),
+        ('Tahsil Edilen', odenen, 'green'),
+        ('Bekleyen', bekleyen, 'red'),
+        ('Gecikme Bedeli', gecikme_top, 'orange')
+    ] %}
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-xs text-gray-500 mb-1">{{ label }}</p>
+        <p class="font-bold text-lg
+            {% if color == 'green' %}text-green-700
+            {% elif color == 'red' %}text-red-700
+            {% elif color == 'orange' %}text-orange-700
+            {% else %}text-blue-700{% endif %}">
+            {{ "%.2f"|format(val) }} ₺
+        </p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Tablo -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-semibold text-gray-700">{{ months[month] }} {{ year }} — {{ dues|length }} kayıt</h3>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Blok/Daire</th>
+                <th class="px-4 py-3 text-left">Sakin</th>
+                <th class="px-4 py-3 text-left">Tür</th>
+                <th class="px-4 py-3 text-right">Demirbaş</th>
+                <th class="px-4 py-3 text-right">Normal</th>
+                <th class="px-4 py-3 text-right">Toplam</th>
+                <th class="px-4 py-3 text-left">Vade</th>
+                <th class="px-4 py-3 text-right">Gecikme</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">Ödeme Tarihi</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for due in dues %}
+            {% set gecikti = not due.is_paid and due.due_date and due.due_date < today %}
+            <tr class="hover:bg-gray-50 {{ 'bg-red-50' if gecikti }}">
+                <td class="px-4 py-2 text-xs whitespace-nowrap">{{ due.apartment.block.name }} / {{ due.apartment.number }}</td>
+                <td class="px-4 py-2 text-xs">{{ due.resident.full_name() if due.resident else '—' }}</td>
+                <td class="px-4 py-2 text-xs">
+                    {% if due.demirbas_amount > 0 and due.normal_amount > 0 %}
+                    <span class="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">D+N</span>
+                    {% elif due.demirbas_amount > 0 %}
+                    <span class="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">Demirbaş</span>
+                    {% else %}
+                    <span class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs">Normal</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2 text-right text-xs">{{ "%.2f"|format(due.demirbas_amount|float) }} ₺</td>
+                <td class="px-4 py-2 text-right text-xs">{{ "%.2f"|format(due.normal_amount|float) }} ₺</td>
+                <td class="px-4 py-2 text-right font-semibold text-xs">{{ "%.2f"|format(due.amount|float) }} ₺</td>
+                <td class="px-4 py-2 text-xs {{ 'text-red-600 font-medium' if gecikti }}">
+                    {{ due.due_date.strftime('%d.%m.%Y') if due.due_date else '—' }}
+                </td>
+                <td class="px-4 py-2 text-right text-xs text-orange-600">
+                    {% if due.gecikme_bedel and due.gecikme_bedel > 0 %}
+                    {{ due.gecikme_gun }} gün / {{ "%.2f"|format(due.gecikme_bedel|float) }} ₺
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-2">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                        {{ 'bg-green-100 text-green-700' if due.is_paid else ('bg-red-100 text-red-700' if gecikti else 'bg-yellow-100 text-yellow-700') }}">
+                        {{ 'Ödendi' if due.is_paid else ('Gecikti' if gecikti else 'Bekliyor') }}
+                    </span>
+                </td>
+                <td class="px-4 py-2 text-xs">{{ due.paid_date.strftime('%d.%m.%Y') if due.paid_date else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="10" class="px-4 py-8 text-center text-gray-400">Kayıt bulunamadı.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

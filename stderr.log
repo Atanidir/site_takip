@@ -1,0 +1,1410 @@
+[2026-05-21 12:11:53,487] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: relation "site_admins" does not exist
+LINE 2: FROM sites, site_admins 
+                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 64, in dashboard
+    sites = get_current_sites()
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 27, in get_current_sites
+    return current_user.managed_sites.order_by(Site.name).all()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2236, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "site_admins" does not exist
+LINE 2: FROM sites, site_admins 
+                    ^
+
+[SQL: SELECT sites.id AS sites_id, sites.name AS sites_name, sites.province AS sites_province, sites.district AS sites_district, sites.neighborhood AS sites_neighborhood, sites.address AS sites_address, sites.uavt_code AS sites_uavt_code, sites.is_active AS sites_is_active, sites.created_at AS sites_created_at 
+FROM sites, site_admins 
+WHERE %(param_1)s = site_admins.user_id AND sites.id = site_admins.site_id ORDER BY sites.name]
+[parameters: {'param_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-05-21 12:12:24,160] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: relation "site_admins" does not exist
+LINE 2: FROM sites, site_admins 
+                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 64, in dashboard
+    sites = get_current_sites()
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 27, in get_current_sites
+    return current_user.managed_sites.order_by(Site.name).all()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2236, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "site_admins" does not exist
+LINE 2: FROM sites, site_admins 
+                    ^
+
+[SQL: SELECT sites.id AS sites_id, sites.name AS sites_name, sites.province AS sites_province, sites.district AS sites_district, sites.neighborhood AS sites_neighborhood, sites.address AS sites_address, sites.uavt_code AS sites_uavt_code, sites.is_active AS sites_is_active, sites.created_at AS sites_created_at 
+FROM sites, site_admins 
+WHERE %(param_1)s = site_admins.user_id AND sites.id = site_admins.site_id ORDER BY sites.name]
+[parameters: {'param_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-05-21 12:12:47,428] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: relation "site_admins" does not exist
+LINE 2: FROM sites, site_admins 
+                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 64, in dashboard
+    sites = get_current_sites()
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 27, in get_current_sites
+    return current_user.managed_sites.order_by(Site.name).all()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2236, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "site_admins" does not exist
+LINE 2: FROM sites, site_admins 
+                    ^
+
+[SQL: SELECT sites.id AS sites_id, sites.name AS sites_name, sites.province AS sites_province, sites.district AS sites_district, sites.neighborhood AS sites_neighborhood, sites.address AS sites_address, sites.uavt_code AS sites_uavt_code, sites.is_active AS sites_is_active, sites.created_at AS sites_created_at 
+FROM sites, site_admins 
+WHERE %(param_1)s = site_admins.user_id AND sites.id = site_admins.site_id ORDER BY sites.name]
+[parameters: {'param_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-05-21 23:13:15,702] ERROR in app: Exception on /site-admin/dues [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 423, in dues
+    return render_template('site_admin/dues.html', site=site,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dues.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 110, in top-level template code
+    {% block content %}{% endblock %}
+  File "/home/probissi/site_takip/app/templates/site_admin/dues.html", line 78, in block 'content'
+    <tr class="hover:bg-gray-50 {{ 'bg-orange-50' if not due.is_paid and due.due_date and due.due_date < today }}">
+jinja2.exceptions.UndefinedError: 'today' is undefined
+[2026-05-21 23:13:22,659] ERROR in app: Exception on /site-admin/dues [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 423, in dues
+    return render_template('site_admin/dues.html', site=site,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dues.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 110, in top-level template code
+    {% block content %}{% endblock %}
+  File "/home/probissi/site_takip/app/templates/site_admin/dues.html", line 78, in block 'content'
+    <tr class="hover:bg-gray-50 {{ 'bg-orange-50' if not due.is_paid and due.due_date and due.due_date < today }}">
+jinja2.exceptions.UndefinedError: 'today' is undefined
+[2026-05-21 23:17:19,722] ERROR in app: Exception on /site-admin/dues/delete [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 769, in delete_dues
+    return render_template('site_admin/delete_dues.html', site=site, sites=sites,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: site_admin/delete_dues.html
+[2026-05-21 23:23:29,432] ERROR in app: Exception on /site-admin/dues/delete [POST]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 764, in delete_dues
+    q.delete(synchronize_session='fetch')
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 3150, in delete
+    bulk_del = BulkDelete(self)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 3338, in __init__
+    self._validate_query_state()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 3362, in _validate_query_state
+    raise sa_exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Can't call Query.update() or Query.delete() when join(), outerjoin(), select_from(), or from_self() has been called
+[2026-05-21 23:44:11,895] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sites.iban does not exist
+LINE 1: ...e_turu, sites.gecikme_oran AS sites_gecikme_oran, sites.iban...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 64, in dashboard
+    sites = get_current_sites()
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 27, in get_current_sites
+    return current_user.managed_sites.order_by(Site.name).all()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2236, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sites.iban does not exist
+LINE 1: ...e_turu, sites.gecikme_oran AS sites_gecikme_oran, sites.iban...
+                                                             ^
+
+[SQL: SELECT sites.id AS sites_id, sites.name AS sites_name, sites.province AS sites_province, sites.district AS sites_district, sites.neighborhood AS sites_neighborhood, sites.address AS sites_address, sites.uavt_code AS sites_uavt_code, sites.is_active AS sites_is_active, sites.gecikme_turu AS sites_gecikme_turu, sites.gecikme_oran AS sites_gecikme_oran, sites.iban AS sites_iban, sites.banka_adi AS sites_banka_adi, sites.hesap_sahibi AS sites_hesap_sahibi, sites.created_at AS sites_created_at 
+FROM sites, site_admins 
+WHERE %(param_1)s = site_admins.user_id AND sites.id = site_admins.site_id ORDER BY sites.name]
+[parameters: {'param_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-05-22 16:47:34,062] ERROR in app: Exception on /site-admin/settings [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 1014, in settings
+    return render_template('site_admin/settings.html', cfg=cfg, global_cfg=global_cfg, site=site)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: site_admin/settings.html
+[2026-05-22 18:09:56,451] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 49, in top-level template code
+    {% include 'shared/nav_site_admin.html' %}
+  File "/home/probissi/site_takip/app/templates/shared/nav_site_admin.html", line 19, in top-level template code
+    <a href="{{ url_for('site_admin.all_residents') }}"
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1084, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1073, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/werkzeug/routing/map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'site_admin.all_residents'. Did you mean 'site_admin.residents' instead?
+[2026-05-22 18:21:19,489] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 93, in top-level template code
+    {% set notifs = current_user | get_notifications %}
+jinja2.exceptions.TemplateRuntimeError: No filter named 'get_notifications' found.
+[2026-05-22 18:21:33,305] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 93, in top-level template code
+    {% set notifs = current_user | get_notifications %}
+jinja2.exceptions.TemplateRuntimeError: No filter named 'get_notifications' found.
+Traceback (most recent call last):
+  File "/home/probissi/site_takip/passenger_wsgi.py", line 10, in <module>
+    from app import create_app
+ImportError: cannot import name 'create_app' from 'app' (unknown location)
+Traceback (most recent call last):
+  File "/home/probissi/site_takip/passenger_wsgi.py", line 10, in <module>
+    from app import create_app
+ImportError: cannot import name 'create_app' from 'app' (unknown location)
+[UID:1043][4017158] Child process with pid: 4017162 was killed by signal: 15, core dumped: no
+Traceback (most recent call last):
+  File "/home/probissi/site_takip/passenger_wsgi.py", line 10, in <module>
+    from app import create_app
+ImportError: cannot import name 'create_app' from 'app' (unknown location)
+Traceback (most recent call last):
+  File "/home/probissi/site_takip/passenger_wsgi.py", line 10, in <module>
+    from app import create_app
+ImportError: cannot import name 'create_app' from 'app' (unknown location)
+[UID:1043][4017284] Child process with pid: 4017301 was killed by signal: 15, core dumped: no
+[2026-05-22 18:26:10,181] ERROR in app: Exception on /site-admin/notifications [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 1087, in notifications
+    notifs = Notification.query.filter_by(user_id=current_user.id)\
+NameError: name 'Notification' is not defined
+[2026-05-22 18:35:56,795] ERROR in app: Exception on /site-admin/send-due-notifications [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 1202, in send_due_notifications
+    from app.utils import send_mail, send_sms
+  File "/home/probissi/site_takip/app/utils.py", line 5, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][93800] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][113076] Child process with pid: 113084 was killed by signal: 15, core dumped: no
+[UID:1043][113076] Child process with pid: 113674 was killed by signal: 15, core dumped: no
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][1376866] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[2026-05-24 20:23:20,244] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column apartments.aidat_muaf does not exist
+LINE 2: ...tments.number_length AS apartments_number_length, apartments...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 69, in dashboard
+    stats['apartments']  = sum(b.apartments.count() for b in site.blocks)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 69, in <genexpr>
+    stats['apartments']  = sum(b.apartments.count() for b in site.blocks)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/dynamic.py", line 197, in count
+    return self._generate(sess).count()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 3112, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2805, in scalar
+    ret = self.one()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2778, in one
+    return self._iter().one()  # type: ignore
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2236, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column apartments.aidat_muaf does not exist
+LINE 2: ...tments.number_length AS apartments_number_length, apartments...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT apartments.id AS apartments_id, apartments.block_id AS apartments_block_id, apartments.number AS apartments_number, apartments.floor AS apartments_floor, apartments.province AS apartments_province, apartments.district AS apartments_district, apartments.neighborhood AS apartments_neighborhood, apartments.address AS apartments_address, apartments.uavt_code AS apartments_uavt_code, apartments.number_type AS apartments_number_type, apartments.number_length AS apartments_number_length, apartments.aidat_muaf AS apartments_aidat_muaf, apartments.muaf_aciklama AS apartments_muaf_aciklama, apartments.created_at AS apartments_created_at 
+FROM apartments 
+WHERE %(param_1)s = apartments.block_id) AS anon_1]
+[parameters: {'param_1': 11}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-05-24 20:24:19,041] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 49, in top-level template code
+    {% include 'shared/nav_site_admin.html' %}
+  File "/home/probissi/site_takip/app/templates/shared/nav_site_admin.html", line 12, in top-level template code
+    <a href="{{ url_for('site_admin.blocks') }}"
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1084, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1073, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/werkzeug/routing/map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'site_admin.blocks'. Did you mean 'site_admin.api_blocks' instead?
+[2026-05-24 20:24:41,034] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 49, in top-level template code
+    {% include 'shared/nav_site_admin.html' %}
+  File "/home/probissi/site_takip/app/templates/shared/nav_site_admin.html", line 12, in top-level template code
+    <a href="{{ url_for('site_admin.blocks') }}"
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1084, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1073, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/werkzeug/routing/map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'site_admin.blocks'. Did you mean 'site_admin.api_blocks' instead?
+[2026-05-24 20:27:00,059] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 49, in top-level template code
+    {% include 'shared/nav_site_admin.html' %}
+  File "/home/probissi/site_takip/app/templates/shared/nav_site_admin.html", line 12, in top-level template code
+    <a href="{{ url_for('site_admin.blocks') }}"
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1084, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1073, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/werkzeug/routing/map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'site_admin.blocks'. Did you mean 'site_admin.api_blocks' instead?
+[UID:1043][3072993] Child process with pid: 3073004 was killed by signal: 15, core dumped: no
+[2026-05-24 21:19:39,039] ERROR in app: Exception on /site-admin/apartments/30/residents/new [POST]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(atanidir@gmail.com) already exists.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 399, in new_resident
+    db.session.flush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/scoping.py", line 937, in flush
+    return self._proxied.flush(objects=objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4341, in flush
+    self._flush(objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4476, in _flush
+    with util.safe_reraise():
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4437, in _flush
+    flush_context.execute()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(atanidir@gmail.com) already exists.
+
+[SQL: INSERT INTO users (username, email, password_hash, full_name, phone, role, is_active, license_id, must_change_pw, reset_token, reset_token_exp, created_at) VALUES (%(username)s, %(email)s, %(password_hash)s, %(full_name)s, %(phone)s, %(role)s, %(is_active)s, %(license_id)s, %(must_change_pw)s, %(reset_token)s, %(reset_token_exp)s, %(created_at)s) RETURNING users.id]
+[parameters: {'username': '10000000146', 'email': 'atanidir@gmail.com', 'password_hash': 'scrypt:32768:8:1$R7EVehyuiqhC6MiV$8654aec2bc5ef39ad394bdbebc8148bc7909f4fa68426ee518e85d689c6de6ca1e29c81f2df00b70772ef18ee6e749fa20a6d007a78ed736a71dd1825804849b', 'full_name': 'Hasan YILDIZ', 'phone': '05524852622', 'role': 'resident', 'is_active': True, 'license_id': None, 'must_change_pw': False, 'reset_token': None, 'reset_token_exp': None, 'created_at': datetime.datetime(2026, 5, 24, 18, 19, 39, 36332)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-05-24 21:20:06,846] ERROR in app: Exception on /site-admin/apartments/30/residents/new [POST]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(atanidir@gmail.com) already exists.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 399, in new_resident
+    db.session.flush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/scoping.py", line 937, in flush
+    return self._proxied.flush(objects=objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4341, in flush
+    self._flush(objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4476, in _flush
+    with util.safe_reraise():
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4437, in _flush
+    flush_context.execute()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(atanidir@gmail.com) already exists.
+
+[SQL: INSERT INTO users (username, email, password_hash, full_name, phone, role, is_active, license_id, must_change_pw, reset_token, reset_token_exp, created_at) VALUES (%(username)s, %(email)s, %(password_hash)s, %(full_name)s, %(phone)s, %(role)s, %(is_active)s, %(license_id)s, %(must_change_pw)s, %(reset_token)s, %(reset_token_exp)s, %(created_at)s) RETURNING users.id]
+[parameters: {'username': '10000000146', 'email': 'atanidir@gmail.com', 'password_hash': 'scrypt:32768:8:1$wDkzotcm5MEHtp8o$5ac57be5999736267f3129494f28ae11f89df9862695a785a966c9e48e3c7a8ddbffc19bca956a26aba9ba8a5b0f1bae923df81136d761a4ccd4773ad7b2eb0b', 'full_name': 'Hasan YILDIZ', 'phone': '05524852622', 'role': 'resident', 'is_active': True, 'license_id': None, 'must_change_pw': False, 'reset_token': None, 'reset_token_exp': None, 'created_at': datetime.datetime(2026, 5, 24, 18, 20, 6, 843823)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-05-24 21:37:49,214] ERROR in app: Exception on /site-admin/blocks/13/delete [POST]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.ForeignKeyViolation: update or delete on table "blocks" violates foreign key constraint "expenses_block_id_fkey" on table "expenses"
+DETAIL:  Key (id)=(13) is still referenced from table "expenses".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 205, in delete_block
+    db.session.commit()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/scoping.py", line 597, in commit
+    return self._proxied.commit()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2017, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 1302, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 1277, in _prepare_impl
+    self.session.flush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4341, in flush
+    self._flush(objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4476, in _flush
+    with util.safe_reraise():
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4437, in _flush
+    flush_context.execute()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 679, in execute
+    util.preloaded.orm_persistence.delete_obj(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 193, in delete_obj
+    _emit_delete_statements(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 1465, in _emit_delete_statements
+    c = connection.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) update or delete on table "blocks" violates foreign key constraint "expenses_block_id_fkey" on table "expenses"
+DETAIL:  Key (id)=(13) is still referenced from table "expenses".
+
+[SQL: DELETE FROM blocks WHERE blocks.id = %(id)s]
+[parameters: {'id': 13}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-05-24 21:41:19,067] ERROR in app: Exception on /site-admin/sites/3/delete [POST]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.ForeignKeyViolation: update or delete on table "blocks" violates foreign key constraint "expenses_block_id_fkey" on table "expenses"
+DETAIL:  Key (id)=(13) is still referenced from table "expenses".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 164, in delete_site
+    Expense.query.filter_by(site_id=sid).delete()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 3161, in delete
+    result: CursorResult[Any] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2215, in _execute_internal
+    ) = compile_state_cls.orm_pre_session_exec(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/bulk_persistence.py", line 703, in orm_pre_session_exec
+    session._autoflush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 3050, in _autoflush
+    raise e.with_traceback(sys.exc_info()[2])
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 3039, in _autoflush
+    self.flush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4341, in flush
+    self._flush(objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4476, in _flush
+    with util.safe_reraise():
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4437, in _flush
+    flush_context.execute()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 679, in execute
+    util.preloaded.orm_persistence.delete_obj(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 193, in delete_obj
+    _emit_delete_statements(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 1465, in _emit_delete_statements
+    c = connection.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(psycopg2.errors.ForeignKeyViolation) update or delete on table "blocks" violates foreign key constraint "expenses_block_id_fkey" on table "expenses"
+DETAIL:  Key (id)=(13) is still referenced from table "expenses".
+
+[SQL: DELETE FROM blocks WHERE blocks.id = %(id)s]
+[parameters: {'id': 13}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-05-25 00:25:10,585] ERROR in app: Exception on /site-admin/sites/3/delete [POST]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.ForeignKeyViolation: update or delete on table "blocks" violates foreign key constraint "expenses_block_id_fkey" on table "expenses"
+DETAIL:  Key (id)=(13) is still referenced from table "expenses".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 164, in delete_site
+    Expense.query.filter_by(site_id=sid).delete()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/query.py", line 3161, in delete
+    result: CursorResult[Any] = self.session.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 2215, in _execute_internal
+    ) = compile_state_cls.orm_pre_session_exec(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/bulk_persistence.py", line 703, in orm_pre_session_exec
+    session._autoflush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 3050, in _autoflush
+    raise e.with_traceback(sys.exc_info()[2])
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 3039, in _autoflush
+    self.flush()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4341, in flush
+    self._flush(objects)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4476, in _flush
+    with util.safe_reraise():
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/session.py", line 4437, in _flush
+    flush_context.execute()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 679, in execute
+    util.preloaded.orm_persistence.delete_obj(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 193, in delete_obj
+    _emit_delete_statements(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 1465, in _emit_delete_statements
+    c = connection.execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 2353, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/probissi/virtualenv/site_takip/3.10/lib64/python3.10/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(psycopg2.errors.ForeignKeyViolation) update or delete on table "blocks" violates foreign key constraint "expenses_block_id_fkey" on table "expenses"
+DETAIL:  Key (id)=(13) is still referenced from table "expenses".
+
+[SQL: DELETE FROM blocks WHERE blocks.id = %(id)s]
+[parameters: {'id': 13}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-05-26 12:43:33,220] ERROR in app: Exception on /site-admin/sakin-mesajlari [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 1716, in sakin_mesajlari
+    return render_template('site_admin/sakin_mesajlari.html',
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 768, in compile
+    self.handle_exception(source=source_hint)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/sakin_mesajlari.html", line 84, in template
+    onsubmit="return confirm('Mesaj\u0131 cevaps\u0131z kapatmak istedi\u011finize emin misiniz?')">
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'Mesaj\u0131'
+[2026-05-26 12:44:06,507] ERROR in app: Exception on /site-admin/sakin-mesajlari [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 1716, in sakin_mesajlari
+    return render_template('site_admin/sakin_mesajlari.html',
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 768, in compile
+    self.handle_exception(source=source_hint)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/sakin_mesajlari.html", line 84, in template
+    onsubmit="return confirm('Mesaj\u0131 cevaps\u0131z kapatmak istedi\u011finize emin misiniz?')">
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'Mesaj\u0131'
+[2026-05-26 12:44:13,882] ERROR in app: Exception on /site-admin/sakin-mesajlari [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 1716, in sakin_mesajlari
+    return render_template('site_admin/sakin_mesajlari.html',
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 768, in compile
+    self.handle_exception(source=source_hint)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/sakin_mesajlari.html", line 84, in template
+    onsubmit="return confirm('Mesaj\u0131 cevaps\u0131z kapatmak istedi\u011finize emin misiniz?')">
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'Mesaj\u0131'

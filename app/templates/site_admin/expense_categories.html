@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Gider Kategori & Türleri{% endblock %}
+{% block page_title %}Gider Kategori & Tür Yönetimi{% endblock %}
+
+{% block content %}
+<div class="flex gap-3 justify-end mb-4">
+    <a href="{{ url_for('site_admin.new_expense_category') }}"
+       class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <i class="fa-solid fa-plus"></i> Yeni Kategori
+    </a>
+    <a href="{{ url_for('site_admin.new_expense_type') }}"
+       class="inline-flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+        <i class="fa-solid fa-plus"></i> Yeni Tür
+    </a>
+</div>
+
+<div class="space-y-4">
+    {% for cat in categories %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <i class="fa-solid fa-tag text-blue-600 text-sm"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800">{{ cat.name }}</h3>
+            {% if cat.description %}<span class="text-sm text-gray-400">— {{ cat.description }}</span>{% endif %}
+        </div>
+        <div class="flex flex-wrap gap-2 pl-11">
+            {% for et in cat.types %}
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full">
+                <i class="fa-solid fa-circle-dot text-blue-400 mr-1"></i>{{ et.name }}
+            </span>
+            {% else %}
+            <span class="text-xs text-gray-400">Bu kategoride henüz tür yok.</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400">
+        <i class="fa-solid fa-tags text-4xl mb-3"></i>
+        <p>Henüz kategori eklenmemiş.</p>
+        <p class="text-xs mt-1">Örnek: Demirbaş, Normal Gider</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

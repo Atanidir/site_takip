@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Gider Raporu{% endblock %}
+{% block page_title %}Gider Raporu{% endblock %}
+
+{% block content %}
+{% set months = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+
+<!-- Rapor Linkleri -->
+<div class="flex gap-2 mb-5">
+    <a href="{{ url_for('site_admin.report_aidat') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-green-400">Aidat</a>
+    <a href="{{ url_for('site_admin.report_gider') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white">Gider</a>
+    <a href="{{ url_for('site_admin.report_sakin') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-green-400">Sakin</a>
+</div>
+
+<!-- Filtreler -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 items-end" id="filterForm">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Yıl</label>
+            <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                {% for y in range(2023, 2028) %}
+                <option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Ay</label>
+            <select name="month" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {{ 'selected' if i == month }}>{{ months[i] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Blok</label>
+            <select name="blok_id" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                <option value="">Tüm Bloklar</option>
+                {% for b in blocks %}
+                <option value="{{ b.id }}" {{ 'selected' if blok_id == b.id|string }}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Kategori</label>
+            <select name="cat_id" onchange="this.form.submit()"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                <option value="">Tüm Kategoriler</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {{ 'selected' if cat_id == cat.id|string }}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if exp_types %}
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Tür</label>
+            <select name="type_id" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                <option value="">Tüm Türler</option>
+                {% for et in exp_types %}
+                <option value="{{ et.id }}" {{ 'selected' if type_id == et.id|string }}>{{ et.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <button type="submit" class="bg-green-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-green-700">
+            <i class="fa-solid fa-filter mr-1"></i> Filtrele
+        </button>
+    </form>
+</div>
+
+<!-- Özet -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+    <div>
+        <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Kategori Bazlı</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
+            {% for kat, tutar in kategori_gider.items() %}
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-700">{{ kat }}</span>
+                <span class="font-semibold text-sm">{{ "%.2f"|format(tutar) }} ₺</span>
+            </div>
+            {% endfor %}
+            <div class="border-t pt-2 flex justify-between items-center">
+                <span class="text-sm font-semibold text-gray-700">Toplam</span>
+                <span class="font-bold text-green-700">{{ "%.2f"|format(toplam) }} ₺</span>
+            </div>
+        </div>
+    </div>
+    <div>
+        <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Blok Bazlı</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
+            {% for blok, tutar in blok_gider.items() %}
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-700">{{ blok }}</span>
+                <span class="font-semibold text-sm">{{ "%.2f"|format(tutar) }} ₺</span>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-400">Veri yok.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Tablo -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-700">{{ months[month] }} {{ year }} — {{ expenses|length }} kayıt</h3>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Tarih</th>
+                <th class="px-4 py-3 text-left">Kategori</th>
+                <th class="px-4 py-3 text-left">Tür</th>
+                <th class="px-4 py-3 text-left">Blok</th>
+                <th class="px-4 py-3 text-left">Açıklama</th>
+                <th class="px-4 py-3 text-left">Fiş No</th>
+                <th class="px-4 py-3 text-right">Tutar</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for exp in expenses %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-xs">{{ exp.expense_date.strftime('%d.%m.%Y') }}</td>
+                <td class="px-4 py-2 text-xs">
+                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">{{ exp.category.name }}</span>
+                </td>
+                <td class="px-4 py-2 text-xs">{{ exp.expense_type.name }}</td>
+                <td class="px-4 py-2 text-xs">
+                    {% if exp.block_id %}
+                    {{ exp.expense_type.name }}
+                    {% else %}Tüm Site{% endif %}
+                </td>
+                <td class="px-4 py-2 text-xs text-gray-500">{{ exp.description or '—' }}</td>
+                <td class="px-4 py-2 text-xs">{{ exp.receipt_no or '—' }}</td>
+                <td class="px-4 py-2 text-right font-semibold text-xs">{{ "%.2f"|format(exp.amount|float) }} ₺</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Kayıt bulunamadı.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

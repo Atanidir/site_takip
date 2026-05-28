@@ -1,0 +1,28 @@
+<a href="{{ url_for('super_admin.dashboard') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'super_admin.dashboard' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-gauge w-4"></i> Dashboard
+</a>
+<a href="{{ url_for('super_admin.licenses') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'license' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-key w-4"></i> Lisanslar
+</a>
+<a href="{{ url_for('super_admin.site_admins') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'site_admin' in request.endpoint and request.endpoint != 'site_admin.dashboard' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-users-gear w-4"></i> Site Adminleri
+</a>
+<a href="{{ url_for('super_admin.settings') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'super_admin.settings' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-gear w-4"></i> Sistem Ayarları
+</a>
+<a href="{{ url_for('super_admin.login_logs') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'super_admin.login_logs' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-list-check w-4"></i> Giriş Logları
+</a>
+<a href="{{ url_for('super_admin.admin_evraklar') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'evrak' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-folder-open w-4"></i> Site Evrakları
+</a>
+<a href="{{ url_for('super_admin.site_mesajlari') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-envelope w-4"></i> Site Admin Mesajları
+</a>

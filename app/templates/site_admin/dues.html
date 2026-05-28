@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% block title %}Aidatlar{% endblock %}
+{% block page_title %}Aidat Takibi{% endblock %}
+
+{% block content %}
+<!-- Filtreler -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Yıl</label>
+            <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {% for y in range(2023, 2028) %}
+                <option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Ay</label>
+            <select name="month" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {% set months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {{ 'selected' if i == month }}>{{ months[i-1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if yonetilen_siteler|length > 1 %}
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Site</label>
+            <select name="site_id" onchange="this.form.submit()"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tüm Siteler</option>
+                {% for s in yonetilen_siteler %}
+                <option value="{{ s.id }}" {{ 'selected' if site_id == s.id }}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        {% if bloklar %}
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Blok</label>
+            <select name="blok_id" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tüm Bloklar</option>
+                {% for b in bloklar %}
+                <option value="{{ b.id }}" {{ 'selected' if blok_id == b.id }}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700">Filtrele</button>
+        <a href="{{ url_for('site_admin.generate_dues') }}"
+           class="ml-auto inline-flex items-center gap-2 bg-purple-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Aidat Oluştur
+        </a>
+        <a href="{{ url_for('site_admin.delete_dues') }}"
+           class="inline-flex items-center gap-2 bg-red-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+            <i class="fa-solid fa-trash"></i> Dönemi Sil
+        </a>
+    </form>
+</div>
+
+{% if dues %}
+{% set paid_list   = dues | selectattr('is_paid') | list %}
+{% set unpaid_list = dues | rejectattr('is_paid') | list %}
+
+<!-- Özet Kartları -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-xs text-gray-500 mb-1">Toplam Aidat</p>
+        <p class="text-xl font-bold text-gray-800">{{ "%.2f"|format(dues | sum(attribute='amount') | float) }} ₺</p>
+        <p class="text-xs text-gray-400">{{ dues|length }} kayıt</p>
+    </div>
+    <div class="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
+        <p class="text-xs text-green-600 mb-1">Tahsil Edilen</p>
+        <p class="text-xl font-bold text-green-700">{{ "%.2f"|format(paid_list | sum(attribute='amount') | float) }} ₺</p>
+        <p class="text-xs text-green-500">{{ paid_list|length }} kayıt</p>
+    </div>
+    <div class="bg-red-50 rounded-xl p-4 border border-red-200 text-center">
+        <p class="text-xs text-red-600 mb-1">Bekleyen</p>
+        <p class="text-xl font-bold text-red-700">{{ "%.2f"|format(unpaid_list | sum(attribute='amount') | float) }} ₺</p>
+        <p class="text-xs text-red-500">{{ unpaid_list|length }} kayıt</p>
+    </div>
+    <div class="bg-orange-50 rounded-xl p-4 border border-orange-200 text-center">
+        <p class="text-xs text-orange-600 mb-1">Toplam Gecikme</p>
+        <p class="text-xl font-bold text-orange-700">{{ "%.2f"|format(dues | sum(attribute='gecikme_bedel') | float) }} ₺</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Normal Aidat Tablosu -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+        <i class="fa-solid fa-money-bill-wave text-blue-500"></i>
+        <h3 class="font-semibold text-gray-700">Normal Aidat (Demirbaş + Normal Gider)</h3>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Blok/Daire</th>
+                <th class="px-4 py-3 text-left">Sakin</th>
+                <th class="px-4 py-3 text-right">Demirbaş</th>
+                <th class="px-4 py-3 text-right">Normal</th>
+                <th class="px-4 py-3 text-right">Toplam</th>
+                <th class="px-4 py-3 text-left">Vade</th>
+                <th class="px-4 py-3 text-right">Gecikme</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">Ödeme Tarihi</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for due in dues %}
+            {% set gecikti = not due.is_paid and due.due_date and due.due_date < today %}
+            <tr class="hover:bg-gray-50 {{ 'bg-orange-50' if gecikti }}">
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <p class="font-medium">{{ due.apartment.block.name }}</p>
+                    <p class="text-xs text-gray-400">Daire {{ due.apartment.number }}</p>
+                </td>
+                <td class="px-4 py-3">
+                    {% if due.resident %}
+                    <p class="text-sm">{{ due.resident.full_name() }}</p>
+                    <p class="text-xs text-gray-400">{{ 'Mülk Sahibi' if due.resident.resident_type == 'owner' else 'Kiracı' }}</p>
+                    {% else %}<span class="text-gray-400 text-xs">—</span>{% endif %}
+                </td>
+                <td class="px-4 py-3 text-right text-xs">{{ "%.2f"|format(due.demirbas_amount|float) }} ₺</td>
+                <td class="px-4 py-3 text-right text-xs">{{ "%.2f"|format(due.normal_amount|float) }} ₺</td>
+                <td class="px-4 py-3 text-right font-semibold whitespace-nowrap">
+                    {{ "%.2f"|format((due.demirbas_amount|float) + (due.normal_amount|float)) }} ₺
+                </td>
+                <td class="px-4 py-3 text-xs whitespace-nowrap">
+                    {% if due.due_date %}
+                    <span class="{{ 'text-red-600 font-medium' if gecikti else '' }}">
+                        {{ due.due_date.strftime('%d.%m.%Y') }}
+                    </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3 text-right text-xs whitespace-nowrap">
+                    {% if due.gecikme_bedel and due.gecikme_bedel > 0 %}
+                    <span class="text-orange-600 font-medium">
+                        {{ due.gecikme_gun }} gün<br>
+                        {{ "%.2f"|format(due.gecikme_bedel|float) }} ₺
+                    </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap
+                            {{ 'bg-green-100 text-green-700' if due.is_paid else ('bg-red-100 text-red-700' if gecikti else 'bg-yellow-100 text-yellow-700') }}">
+                            {{ 'Ödendi' if due.is_paid else ('Gecikti' if gecikti else 'Bekliyor') }}
+                        </span>
+                        {% if not due.is_paid %}
+                        <button type="button" onclick="odemeModal({{ due.id }})"
+                                class="inline-flex items-center gap-1 bg-green-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap">
+                            <i class="fa-solid fa-check"></i> Ödendi
+                        </button>
+                        {% else %}
+                        <a href="{{ url_for('site_admin.toggle_due_paid', did=due.id) }}"
+                           class="text-xs text-red-500 hover:underline whitespace-nowrap">Geri Al</a>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-xs whitespace-nowrap">
+                    {{ due.paid_date.strftime('%d.%m.%Y') if due.paid_date else '—' }}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">Bu dönem için aidat kaydı yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<!-- Yakıt Tablosu -->
+{% if yakit_dues %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    {% set yakit_paid   = yakit_dues | selectattr('is_paid') | list %}
+    {% set yakit_unpaid = yakit_dues | rejectattr('is_paid') | list %}
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-orange-100 text-center">
+        <p class="text-xs text-orange-500 mb-1">Toplam Yakıt</p>
+        <p class="text-xl font-bold text-gray-800">{{ "%.2f"|format(yakit_dues | sum(attribute='amount') | float) }} ₺</p>
+        <p class="text-xs text-gray-400">{{ yakit_dues|length }} kayıt</p>
+    </div>
+    <div class="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
+        <p class="text-xs text-green-600 mb-1">Tahsil Edilen</p>
+        <p class="text-xl font-bold text-green-700">{{ "%.2f"|format(yakit_paid | sum(attribute='amount') | float) }} ₺</p>
+        <p class="text-xs text-green-500">{{ yakit_paid|length }} kayıt</p>
+    </div>
+    <div class="bg-red-50 rounded-xl p-4 border border-red-200 text-center">
+        <p class="text-xs text-red-600 mb-1">Bekleyen</p>
+        <p class="text-xl font-bold text-red-700">{{ "%.2f"|format(yakit_unpaid | sum(attribute='amount') | float) }} ₺</p>
+        <p class="text-xs text-red-500">{{ yakit_unpaid|length }} kayıt</p>
+    </div>
+    <div class="bg-orange-50 rounded-xl p-4 border border-orange-200 text-center">
+        <p class="text-xs text-orange-600 mb-1">Toplam Gecikme</p>
+        <p class="text-xl font-bold text-orange-700">{{ "%.2f"|format(yakit_dues | sum(attribute='gecikme_bedel') | float) }} ₺</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden">
+    <div class="px-5 py-3 border-b border-orange-100 flex items-center gap-2">
+        <i class="fa-solid fa-gas-pump text-orange-500"></i>
+        <h3 class="font-semibold text-gray-700">Yakıt Aidatı</h3>
+        <span class="text-xs text-orange-600 ml-2">Ayrı vade tarihi uygulanır</span>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-orange-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Blok/Daire</th>
+                <th class="px-4 py-3 text-left">Sakin</th>
+                <th class="px-4 py-3 text-left">Dönem</th>
+                <th class="px-4 py-3 text-right">Yakıt Payı</th>
+                <th class="px-4 py-3 text-left">Vade</th>
+                <th class="px-4 py-3 text-right">Gecikme</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">Ödeme Tarihi</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% set months = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+            {% for due in yakit_dues %}
+            {% set gecikti = not due.is_paid and due.due_date and due.due_date < today %}
+            <tr class="hover:bg-orange-50 {{ 'bg-red-50' if gecikti }}">
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <p class="font-medium">{{ due.apartment.block.name }}</p>
+                    <p class="text-xs text-gray-400">Daire {{ due.apartment.number }}</p>
+                </td>
+                <td class="px-4 py-3">
+                    {% if due.resident %}
+                    <p class="text-sm">{{ due.resident.full_name() }}</p>
+                    <p class="text-xs text-gray-400">{{ 'Mülk Sahibi' if due.resident.resident_type == 'owner' else 'Kiracı' }}</p>
+                    {% else %}<span class="text-gray-400 text-xs">—</span>{% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs">
+                    {{ months[due.period_month] }} {{ due.period_year }}
+                    {% if due.period_year != year or due.period_month != month %}
+                    <span class="px-1.5 py-0.5 bg-red-100 text-red-600 rounded text-xs ml-1">Geçmiş</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right font-semibold text-orange-700">
+                    {{ "%.2f"|format(due.amount|float) }} ₺
+                </td>
+                <td class="px-4 py-3 text-xs whitespace-nowrap">
+                    {% if due.due_date %}
+                    <span class="{{ 'text-red-600 font-medium' if gecikti else '' }}">
+                        {{ due.due_date.strftime('%d.%m.%Y') }}
+                    </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3 text-right text-xs whitespace-nowrap">
+                    {% if due.gecikme_bedel and due.gecikme_bedel > 0 %}
+                    <span class="text-orange-600 font-medium">
+                        {{ due.gecikme_gun }} gün<br>
+                        {{ "%.2f"|format(due.gecikme_bedel|float) }} ₺
+                    </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap
+                            {{ 'bg-green-100 text-green-700' if due.is_paid else ('bg-red-100 text-red-700' if gecikti else 'bg-yellow-100 text-yellow-700') }}">
+                            {{ 'Ödendi' if due.is_paid else ('Gecikti' if gecikti else 'Bekliyor') }}
+                        </span>
+                        {% if not due.is_paid %}
+                        <button type="button" onclick="odemeModal({{ due.id }})"
+                                class="inline-flex items-center gap-1 bg-green-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap">
+                            <i class="fa-solid fa-check"></i> Ödendi
+                        </button>
+                        {% else %}
+                        <a href="{{ url_for('site_admin.toggle_due_paid', did=due.id) }}"
+                           class="text-xs text-red-500 hover:underline whitespace-nowrap">Geri Al</a>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-xs whitespace-nowrap">
+                    {{ due.paid_date.strftime('%d.%m.%Y') if due.paid_date else '—' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Ödeme Modalı -->
+<div id="odemeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+        <h3 class="font-semibold text-gray-800 mb-4">Ödeme Bilgisi</h3>
+        <form id="odemeForm" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ödeme Tarihi</label>
+                <input type="date" name="paid_date" id="paid_date_input"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Not (opsiyonel)</label>
+                <input type="text" name="payment_note" placeholder="Banka, nakit vb."
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex gap-3">
+                <button type="submit"
+                        class="flex-1 bg-green-600 text-white text-sm py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fa-solid fa-check mr-1"></i> Ödendi Kaydet
+                </button>
+                <button type="button" onclick="closeModal()"
+                        class="flex-1 bg-gray-100 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    İptal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const today = new Date().toISOString().split('T')[0];
+
+function odemeModal(dueId) {
+    document.getElementById('odemeForm').action = `/site-admin/dues/${dueId}/pay`;
+    document.getElementById('paid_date_input').value = today;
+    document.getElementById('odemeModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('odemeModal').classList.add('hidden');
+}
+
+document.getElementById('odemeModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

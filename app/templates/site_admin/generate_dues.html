@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block title %}Aidat Oluştur{% endblock %}
+{% block page_title %}Aidat Oluşturma{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+
+        <!-- Adım 1: Tarih Aralığı Seç -->
+        <div class="mb-6">
+            <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">1</span>
+                Gider Dönemini Seçin
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
+                    <input type="date" id="start_date"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
+                    <input type="date" id="end_date"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <button type="button" onclick="hesapla()"
+                    class="mt-4 bg-gray-700 text-white text-sm px-5 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                <i class="fa-solid fa-calculator mr-1"></i> Giderleri Hesapla
+            </button>
+        </div>
+
+        <!-- Hesaplama Sonucu -->
+        <div id="sonucDiv" class="hidden mb-6">
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+                <h4 class="font-semibold text-gray-700 mb-3">Gider Özeti</h4>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                        <p class="text-xs text-blue-600 mb-1">Demirbaş Toplam</p>
+                        <p class="font-bold text-blue-800" id="demirbas_toplam">0.00 ₺</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                        <p class="text-xs text-green-600 mb-1">Normal Toplam</p>
+                        <p class="font-bold text-green-800" id="normal_toplam">0.00 ₺</p>
+                    </div>
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                        <p class="text-xs text-orange-600 mb-1">Yakıt Toplam</p>
+                        <p class="font-bold text-orange-800" id="yakit_toplam_goster">0.00 ₺</p>
+                    </div>
+                </div>
+                <div class="mt-3 grid grid-cols-2 gap-3">
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center">
+                        <p class="text-xs text-purple-600 mb-1">Toplam Gider</p>
+                        <p class="font-bold text-purple-800" id="genel_toplam">0.00 ₺</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-500 mb-1">Toplam Daire</p>
+                        <p class="font-bold text-gray-800" id="daire_sayisi">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adım 2: Aidat Formu -->
+            <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">2</span>
+                Aidat Detayları
+            </h3>
+
+            <form method="POST" class="space-y-4">
+                <input type="hidden" name="start_date" id="h_start_date">
+                <input type="hidden" name="end_date" id="h_end_date">
+                <input type="hidden" name="demirbas_toplam" id="h_demirbas">
+                <input type="hidden" name="normal_toplam" id="h_normal">
+                <input type="hidden" name="yakit_toplam" id="h_yakit">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Aidat Yılı</label>
+                        <input type="number" name="year" id="f_year" value="{{ year }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Aidat Ayı</label>
+                        <select name="month" id="f_month"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% set months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+                            {% for i in range(1, 13) %}
+                            <option value="{{ i }}" {{ 'selected' if i == month }}>{{ months[i-1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Yakıt Tutarı -->
+                <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                    <h4 class="font-semibold text-orange-700 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-gas-pump"></i> Yakıt Gideri
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Yakıt Toplam Tutarı (₺)</label>
+                            <input type="number" id="yakit_input" step="0.01" min="0" value="0"
+                                   oninput="yakitGuncelle(this.value)"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                            <p class="text-xs text-orange-600 mt-1">0 girerseniz yakıt hesaplanmaz.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Yakıt Vade Tarihi</label>
+                            <input type="date" name="yakit_due_date" id="yakit_due_date"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vade -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Vade Süresi (Normal Aidat)</label>
+                    <div class="flex gap-2 flex-wrap">
+                        {% for g in [3, 5, 7, 10, 15, 30] %}
+                        <label class="flex items-center gap-1 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-blue-400 transition-colors">
+                            <input type="radio" name="vade_gun" value="{{ g }}" {{ 'checked' if g == 5 }} onchange="vadeTarihiGuncelle(this.value)">
+                            <span class="text-sm">{{ g }} gün</span>
+                        </label>
+                        {% endfor %}
+                        <label class="flex items-center gap-1 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-blue-400 transition-colors">
+                            <input type="radio" name="vade_gun" value="custom" onchange="vadeTarihiGuncelle('custom')">
+                            <span class="text-sm">Manuel</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Vade Tarihi</label>
+                        <input type="date" name="due_date" id="due_date"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="manuelGunDiv" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kaç Gün?</label>
+                        <input type="number" id="manuel_gun" min="1" max="365"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               oninput="vadeTarihiGuncelle('custom')">
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p class="text-xs text-yellow-700 font-medium mb-2">
+                        <i class="fa-solid fa-circle-info mr-1"></i>
+                        Aidat hesaplaması:
+                    </p>
+                    <ul class="text-xs text-yellow-700 space-y-1">
+                        <li>• <strong>Mülk sahibi oturanlar:</strong> Demirbaş + Normal + Yakıt payı</li>
+                        <li>• <strong>Kiracı oturanlar:</strong> Normal + Yakıt payı</li>
+                        <li>• <strong>Kiraya verilen daireler:</strong> Sadece Demirbaş payı (mülk sahibine)</li>
+                        <li>• <strong>Yakıt</strong> ayrı vade tarihiyle hesaplanır.</li>
+                    </ul>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-blue-600 text-white text-sm py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Aidatları Oluştur
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SITE_ID = {{ site.id }};
+
+async function hesapla() {
+    const start = document.getElementById('start_date').value;
+    const end   = document.getElementById('end_date').value;
+    if (!start || !end) { alert('Lütfen başlangıç ve bitiş tarihini seçin.'); return; }
+    if (start > end) { alert('Başlangıç tarihi bitiş tarihinden büyük olamaz.'); return; }
+
+    const res  = await fetch(`/site-admin/api/gider-hesapla?site_id=${SITE_ID}&start=${start}&end=${end}`);
+    const data = await res.json();
+
+    document.getElementById('demirbas_toplam').textContent    = data.demirbas.toFixed(2) + ' ₺';
+    document.getElementById('normal_toplam').textContent      = data.normal.toFixed(2) + ' ₺';
+    document.getElementById('yakit_toplam_goster').textContent= data.yakit.toFixed(2) + ' ₺';
+    document.getElementById('genel_toplam').textContent       = (data.demirbas + data.normal + data.yakit).toFixed(2) + ' ₺';
+    document.getElementById('daire_sayisi').textContent       = data.daire_sayisi;
+
+    document.getElementById('h_start_date').value = start;
+    document.getElementById('h_end_date').value   = end;
+    document.getElementById('h_demirbas').value   = data.demirbas;
+    document.getElementById('h_normal').value     = data.normal;
+    document.getElementById('h_yakit').value      = data.yakit;
+
+    // Yakıt input'unu otomatik doldur
+    document.getElementById('yakit_input').value  = data.yakit.toFixed(2);
+
+    document.getElementById('sonucDiv').classList.remove('hidden');
+    vadeTarihiGuncelle('5');
+}
+
+function yakitGuncelle(val) {
+    const yakit = parseFloat(val) || 0;
+    document.getElementById('h_yakit').value = yakit;
+    document.getElementById('yakit_toplam_goster').textContent = yakit.toFixed(2) + ' ₺';
+
+    // Genel toplamı güncelle
+    const dm = parseFloat(document.getElementById('h_demirbas').value) || 0;
+    const nm = parseFloat(document.getElementById('h_normal').value) || 0;
+    document.getElementById('genel_toplam').textContent = (dm + nm + yakit).toFixed(2) + ' ₺';
+}
+
+function vadeTarihiGuncelle(val) {
+    const manuelDiv = document.getElementById('manuelGunDiv');
+    if (val === 'custom') {
+        manuelDiv.classList.remove('hidden');
+        const gun = parseInt(document.getElementById('manuel_gun').value) || 0;
+        if (gun > 0) setVade(gun);
+    } else {
+        manuelDiv.classList.add('hidden');
+        setVade(parseInt(val));
+    }
+}
+
+function setVade(gun) {
+    const d = new Date();
+    d.setDate(d.getDate() + gun);
+    document.getElementById('due_date').value = d.toISOString().split('T')[0];
+}
+
+window.addEventListener('load', () => setVade(5));
+</script>
+{% endblock %}

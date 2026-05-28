@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Evrak Klasörü{% endblock %}
+{% block page_title %}Evrak Klasörü{% endblock %}
+
+{% block content %}
+
+<!-- Kategori Filtreleri -->
+<div class="flex flex-wrap gap-2 mb-5">
+    <a href="{{ url_for('site_admin.evraklar') }}"
+       class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+           {{ 'bg-blue-600 text-white' if not secili_kategori else 'bg-white text-gray-600 border border-gray-200 hover:border-blue-400' }}">
+        Tümü
+    </a>
+    {% for kat in kategoriler %}
+    <a href="{{ url_for('site_admin.evraklar', kategori=kat) }}"
+       class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+           {{ 'bg-blue-600 text-white' if secili_kategori == kat else 'bg-white text-gray-600 border border-gray-200 hover:border-blue-400' }}">
+        {{ kat }}
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('site_admin.evrak_yukle') }}"
+       class="ml-auto inline-flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-green-700 transition-colors">
+        <i class="fa-solid fa-upload"></i> Evrak Yükle
+    </a>
+</div>
+
+<!-- Evrak Listesi -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Başlık</th>
+                <th class="px-4 py-3 text-left">Kategori</th>
+                <th class="px-4 py-3 text-left">Dosya</th>
+                <th class="px-4 py-3 text-left">Boyut</th>
+                <th class="px-4 py-3 text-left">Yükleyen</th>
+                <th class="px-4 py-3 text-left">Tarih</th>
+                <th class="px-4 py-3 text-left">İşlem</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for doc in docs %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ doc.title }}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs">{{ doc.category }}</span>
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-500">{{ doc.original_name }}</td>
+                <td class="px-4 py-3 text-xs text-gray-400">
+                    {% if doc.file_size %}
+                        {% if doc.file_size > 1048576 %}
+                            {{ "%.1f"|format(doc.file_size / 1048576) }} MB
+                        {% else %}
+                            {{ "%.0f"|format(doc.file_size / 1024) }} KB
+                        {% endif %}
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs">{{ doc.uploader.full_name if doc.uploader else '—' }}</td>
+                <td class="px-4 py-3 text-xs">{{ doc.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <a href="{{ url_for('site_admin.evrak_indir', doc_id=doc.id) }}"
+                           class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
+                            <i class="fa-solid fa-download mr-1"></i>İndir
+                        </a>
+                        <form method="POST" action="{{ url_for('site_admin.evrak_sil', doc_id=doc.id) }}"
+                              onsubmit="return confirm('Bu evrakı silmek istediğinize emin misiniz?')">
+                            <button type="submit"
+                                    class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100 transition-colors">
+                                Sil
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="px-4 py-12 text-center text-gray-400">
+                    <i class="fa-solid fa-folder-open text-4xl mb-3 block"></i>
+                    Henüz evrak yüklenmemiş.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

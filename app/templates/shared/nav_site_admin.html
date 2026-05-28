@@ -1,0 +1,81 @@
+<a href="{{ url_for('site_admin.dashboard') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'site_admin.dashboard' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-gauge w-4"></i> Dashboard
+</a>
+
+<p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Site Yapısı</p>
+
+<a href="{{ url_for('site_admin.site_setup') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'site_setup' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-city w-4"></i> Site Bilgileri
+</a>
+<a href="{{ url_for('site_admin.blocks') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'block' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-building w-4"></i> Bloklar & Daireler
+</a>
+
+<p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Sakinler</p>
+
+<a href="{{ url_for('site_admin.all_residents') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'all_residents' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-people-roof w-4"></i> Tüm Sakinler
+</a>
+<a href="{{ url_for('site_admin.sakin_mesajlari') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-envelope w-4"></i> Sakin Mesajları
+    {% set okunmamis_mesaj = current_user | get_unread_messages %}
+    {% if okunmamis_mesaj > 0 %}
+    <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+        {{ okunmamis_mesaj if okunmamis_mesaj < 10 else '9+' }}
+    </span>
+    {% endif %}
+</a>
+<a href="{{ url_for('site_admin.sakin_kullanicilari') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'sakin_kullanici' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-users w-4"></i> Sakin Kullanıcıları
+</a>
+<a href="{{ url_for('site_admin.borclu_pasif_sakinler') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'borclu' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-user-slash w-4 text-red-400"></i> Borçlu Pasif Sakinler
+</a>
+
+<p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Finans</p>
+
+<a href="{{ url_for('site_admin.expenses') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'expense' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-receipt w-4"></i> Giderler
+</a>
+<a href="{{ url_for('site_admin.dues') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'due' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-money-bill-wave w-4"></i> Aidatlar
+</a>
+<a href="{{ url_for('site_admin.expense_categories') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-700 transition-colors">
+    <i class="fa-solid fa-tags w-4"></i> Kategori & Türler
+</a>
+
+<p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Evraklar</p>
+
+<a href="{{ url_for('site_admin.evraklar') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'evrak' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-folder-open w-4"></i> Evrak Klasörü
+</a>
+
+<p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Raporlar</p>
+
+<a href="{{ url_for('site_admin.report_aidat') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'report' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-chart-bar w-4"></i> Raporlar
+</a>
+<a href="{{ url_for('site_admin.settings') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'site_admin.settings' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-gear w-4"></i> İletişim Ayarları
+</a>
+<a href="{{ url_for('site_admin.yonetici_evraklar') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'yonetici_evrak' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-folder w-4"></i> Sistem Yöneticisinden Evraklar
+</a>
+<a href="{{ url_for('site_admin.superadmine_mesaj') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'superadmine_mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-paper-plane w-4"></i> Sistem Yöneticisine Mesaj
+</a>

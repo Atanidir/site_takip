@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Blok Düzenle' if block else 'Yeni Blok' }}{% endblock %}
+{% block page_title %}{{ 'Blok Düzenle' if block else 'Yeni Blok Ekle' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+
+        <!-- Site adres bilgisi -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-5 text-sm text-blue-700 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Adres bilgisi siteden otomatik alınır:
+                <strong>{{ site.neighborhood or '' }}
+                {% if site.district %} / {{ site.district }}{% endif %}
+                {% if site.province %} / {{ site.province }}{% endif %}</strong>
+            </span>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            <!-- Gizli adres alanları - siteden otomatik -->
+            <input type="hidden" name="province"     value="{{ site.province or '' }}">
+            <input type="hidden" name="district"     value="{{ site.district or '' }}">
+            <input type="hidden" name="neighborhood" value="{{ site.neighborhood or '' }}">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Blok Adı <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" required value="{{ block.name if block else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ör: A Blok">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dış Kapı No</label>
+                    <input type="text" name="dis_kapi_no" value="{{ block.dis_kapi_no if block else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ör: 12">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">UAVT Kodu</label>
+                <input type="text" name="uavt_code" value="{{ block.uavt_code if block else '' }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                        class="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Kaydet</button>
+                <a href="{{ url_for('site_admin.blocks') }}"
+                   class="bg-gray-100 text-gray-700 text-sm px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

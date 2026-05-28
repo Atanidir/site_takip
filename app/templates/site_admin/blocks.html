@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Bloklar{% endblock %}
+{% block page_title %}Blok Yönetimi{% endblock %}
+
+{% block content %}
+<div class="flex justify-end mb-4">
+    <a href="{{ url_for('site_admin.new_block') }}"
+       class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <i class="fa-solid fa-plus"></i> Yeni Blok
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for blk in blocks %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <i class="fa-solid fa-building text-blue-600"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800">{{ blk.name }}</h3>
+                    <p class="text-xs text-gray-500">{{ blk.district or site.district }}, {{ blk.province or site.province }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('site_admin.edit_block', bid=blk.id) }}"
+               class="text-gray-400 hover:text-blue-600 transition-colors">
+                <i class="fa-solid fa-pen text-sm"></i>
+            </a>
+            <form method="POST" action="{{ url_for('site_admin.delete_block', bid=blk.id) }}"
+                  onsubmit="return confirm('{{ blk.name }} bloğunu ve tüm daire/sakin/aidat verilerini silmek istediğinize emin misiniz?')">
+                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors ml-2">
+                    <i class="fa-solid fa-trash text-sm"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+            <span class="text-sm text-gray-600">
+                <i class="fa-solid fa-door-open text-gray-400 mr-1"></i>
+                {{ blk.apartments.count() }} daire
+            </span>
+            <div class="flex gap-2">
+                <a href="{{ url_for('site_admin.bulk_apartments', bid=blk.id) }}"
+                   class="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 transition-colors">
+                    <i class="fa-solid fa-layer-group mr-1"></i>Toplu Ekle
+                </a>
+                <a href="{{ url_for('site_admin.apartments', bid=blk.id) }}"
+                   class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-100 transition-colors">
+                    Daireler →
+                </a>
+            </div>
+        </div>
+
+        {% if blk.uavt_code %}
+        <p class="mt-2 text-xs text-gray-400">UAVT: {{ blk.uavt_code }}</p>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="col-span-3 text-center py-12 text-gray-400">
+        <i class="fa-solid fa-building text-4xl mb-3"></i>
+        <p>Henüz blok eklenmemiş.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+<a href="{{ url_for('resident.dashboard') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'resident.dashboard' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-house w-4"></i> Hesabım
+</a>
+
+<a href="{{ url_for('resident.mesajlarim') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-envelope w-4"></i> Mesajlarım
+    {% set okunmamis_cevap = current_user | get_unread_replies %}
+    {% if okunmamis_cevap > 0 %}
+    <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-pulse">
+        {{ okunmamis_cevap }}
+    </span>
+    {% endif %}
+</a>

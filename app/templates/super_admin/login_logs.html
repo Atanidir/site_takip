@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Giriş Logları{% endblock %}
+{% block page_title %}Giriş Logları{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Tarih</th>
+                <th class="px-4 py-3 text-left">Kullanıcı</th>
+                <th class="px-4 py-3 text-left">Kimlik</th>
+                <th class="px-4 py-3 text-left">IP Adresi</th>
+                <th class="px-4 py-3 text-left">Rol</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">Açıklama</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for log in logs %}
+            <tr class="hover:bg-gray-50 {{ 'bg-red-50' if not log.basarili }}">
+                <td class="px-4 py-3 text-xs whitespace-nowrap">{{ log.tarih.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td class="px-4 py-3 text-xs">{{ log.full_name or '—' }}</td>
+                <td class="px-4 py-3 font-mono text-xs">{{ log.kimlik }}</td>
+                <td class="px-4 py-3 text-xs">{{ log.ip_adresi }}</td>
+                <td class="px-4 py-3 text-xs">
+                    {% if log.role == 'super_admin' %}Süper Admin
+                    {% elif log.role == 'site_admin' %}Site Admin
+                    {% elif log.role == 'resident' %}Sakin
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                        {{ 'bg-green-100 text-green-700' if log.basarili else 'bg-red-100 text-red-700' }}">
+                        {{ 'Başarılı' if log.basarili else 'Başarısız' }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-500">{{ log.aciklama }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Henüz giriş logu yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Lisans Düzenle' if license else 'Yeni Lisans' }}{% endblock %}
+{% block page_title %}{{ 'Lisans Düzenle' if license else 'Yeni Lisans Oluştur' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="POST">
+            <div class="space-y-4">
+                {% if not license %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Lisans Anahtarı</label>
+                    <input type="text" name="license_key"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Boş bırakırsanız otomatik oluşturulur">
+                </div>
+                {% else %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Lisans Anahtarı</label>
+                    <p class="font-mono text-sm bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">{{ license.license_key }}</p>
+                </div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                    <input type="text" name="description" value="{{ license.description if license else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ör: İstanbul Güneşli Sitesi">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Geçerlilik Tarihi</label>
+                    <input type="date" name="valid_until"
+                           value="{{ license.valid_until.strftime('%Y-%m-%d') if license and license.valid_until else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">Boş bırakırsanız süresiz olur.</p>
+                </div>
+
+                {% if license %}
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="is_active" {{ 'checked' if license.is_active }}>
+                    <label for="is_active" class="text-sm text-gray-700">Aktif</label>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="submit"
+                        class="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Kaydet
+                </button>
+                <a href="{{ url_for('super_admin.licenses') }}"
+                   class="bg-gray-100 text-gray-700 text-sm px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    İptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

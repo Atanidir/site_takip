@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Sakinler — Daire {{ apartment.number }}{% endblock %}
+{% block page_title %}{{ apartment.block.name }} / Daire {{ apartment.number }} — Sakinler{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+    <a href="{{ url_for('site_admin.apartments', bid=apartment.block.id) }}"
+       class="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1">
+        <i class="fa-solid fa-chevron-left text-xs"></i> Dairelere Dön
+    </a>
+    <a href="{{ url_for('site_admin.new_resident', aid=apartment.id) }}"
+       class="ml-auto inline-flex items-center gap-2 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <i class="fa-solid fa-plus"></i> Sakin Ekle
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Ad Soyad</th>
+                <th class="px-4 py-3 text-left">Tür</th>
+                <th class="px-4 py-3 text-left">TC No</th>
+                <th class="px-4 py-3 text-left">Telefon</th>
+                <th class="px-4 py-3 text-left">Giriş</th>
+                <th class="px-4 py-3 text-left">Çıkış</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">İşlem</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for res in residents %}
+            <tr class="hover:bg-gray-50 {{ '' if res.is_active else 'opacity-60' }}">
+                <td class="px-4 py-3 font-medium">{{ res.full_name() }}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium
+                        {{ 'bg-blue-100 text-blue-700' if res.resident_type == 'owner' else 'bg-orange-100 text-orange-700' }}">
+                        {{ 'Mülk Sahibi' if res.resident_type == 'owner' else 'Kiracı' }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs">{{ res.tc_no or '—' }}</td>
+                <td class="px-4 py-3">{{ res.phone or '—' }}</td>
+                <td class="px-4 py-3 text-xs">{{ res.move_in_date.strftime('%d.%m.%Y') if res.move_in_date else '—' }}</td>
+                <td class="px-4 py-3 text-xs">{{ res.move_out_date.strftime('%d.%m.%Y') if res.move_out_date else '—' }}</td>
+                <td class="px-4 py-3">
+                    <span class="w-2 h-2 inline-block rounded-full {{ 'bg-green-400' if res.is_active else 'bg-gray-300' }}"></span>
+                    {{ 'Aktif' if res.is_active else 'Pasif' }}
+                </td>
+                <td class="px-4 py-3">
+                    <a href="{{ url_for('site_admin.edit_resident', rid=res.id) }}"
+                       class="text-xs text-blue-600 hover:underline">Düzenle</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Bu dairede sakin kaydı yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Kiracı Dialog (kiracı yoksa) -->
+<div id="kiraciDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="fa-solid fa-person-shelter text-blue-600"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800">Bu dairede kiracı var mı?</h3>
+        </div>
+        <p class="text-sm text-gray-500 mb-5">Mülk sahibi kaydedildi. Eğer dairede kiracı oturuyorsa hemen ekleyebilirsiniz.</p>
+        <div class="flex gap-3">
+            <button type="button" onclick="kiraciEkle()"
+                    class="flex-1 bg-blue-600 text-white text-sm py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                <i class="fa-solid fa-plus mr-1"></i> Evet, Kiracı Ekle
+            </button>
+            <button type="button" onclick="kiraciDialogKapat()"
+                    class="flex-1 bg-gray-100 text-gray-700 text-sm py-2.5 rounded-lg hover:bg-gray-200 transition-colors">
+                Hayır, Geç
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Mevcut Kiracı Dialog (kiracı varsa) -->
+<div id="mevcutKiraciDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                <i class="fa-solid fa-person-walking-arrow-right text-yellow-600"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800">Mevcut Kiracı</h3>
+        </div>
+        {% if existing_tenant %}
+        <p class="text-sm text-gray-600 mb-1">
+            <strong>{{ existing_tenant.full_name() }}</strong> bu dairede aktif kiracı olarak kayıtlı.
+        </p>
+        {% endif %}
+        <p class="text-sm text-gray-500 mb-5">Mevcut kiracı çıkış mı yaptı?</p>
+        <div class="flex gap-3">
+            {% if existing_tenant %}
+            <a href="{{ url_for('site_admin.edit_resident', rid=existing_tenant.id) }}"
+               class="flex-1 bg-yellow-500 text-white text-sm py-2.5 rounded-lg hover:bg-yellow-600 transition-colors font-medium text-center">
+                <i class="fa-solid fa-pen mr-1"></i> Çıkış Tarihi Gir
+            </a>
+            {% endif %}
+            <button type="button" onclick="mevcutKiraciDialogKapat()"
+                    class="flex-1 bg-gray-100 text-gray-700 text-sm py-2.5 rounded-lg hover:bg-gray-200 transition-colors">
+                Hayır, Devam Ediyor
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Mülk Sahibi Değişikliği Dialog -->
+<div id="mulkDegiDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <i class="fa-solid fa-house-circle-xmark text-orange-600"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800">Mülk Sahipliği Değişti</h3>
+        </div>
+        <p class="text-sm text-gray-500 mb-5">Mülk sahibi güncellendi. Yeni mülk sahibini şimdi eklemek ister misiniz?</p>
+        <div class="flex gap-3">
+            <button type="button" onclick="yeniMulkSahibiEkle()"
+                    class="flex-1 bg-orange-600 text-white text-sm py-2.5 rounded-lg hover:bg-orange-700 transition-colors font-medium">
+                <i class="fa-solid fa-plus mr-1"></i> Yeni Mülk Sahibi Ekle
+            </button>
+            <button type="button" onclick="mulkDegiDialogKapat()"
+                    class="flex-1 bg-gray-100 text-gray-700 text-sm py-2.5 rounded-lg hover:bg-gray-200 transition-colors">
+                Daha Sonra
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if show_tenant_dialog %}
+<script>
+window.addEventListener('load', function() {
+    document.getElementById('kiraciDialog').classList.remove('hidden');
+});
+</script>
+{% endif %}
+{% if show_existing_tenant_dialog %}
+<script>
+window.addEventListener('load', function() {
+    document.getElementById('mevcutKiraciDialog').classList.remove('hidden');
+});
+</script>
+{% endif %}
+{% if show_owner_dialog %}
+<script>
+window.addEventListener('load', function() {
+    document.getElementById('mulkDegiDialog').classList.remove('hidden');
+});
+</script>
+{% endif %}
+<script>
+function kiraciEkle() {
+    window.location.href = "{{ url_for('site_admin.new_resident', aid=apartment.id) }}?type=tenant";
+}
+function kiraciDialogKapat() {
+    document.getElementById('kiraciDialog').classList.add('hidden');
+}
+function mevcutKiraciDialogKapat() {
+    document.getElementById('mevcutKiraciDialog').classList.add('hidden');
+}
+function yeniMulkSahibiEkle() {
+    window.location.href = "{{ url_for('site_admin.new_resident', aid=apartment.id) }}?type=owner";
+}
+function mulkDegiDialogKapat() {
+    document.getElementById('mulkDegiDialog').classList.add('hidden');
+}
+</script>
+{% endblock %}

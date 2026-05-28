@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Site Aidat Takip{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#eff6ff',100:'#dbeafe',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
+                        sidebar: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+{% if current_user.is_authenticated %}
+
+<!-- Mobile overlay -->
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+<div class="flex h-screen overflow-hidden">
+    <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-800 text-white flex flex-col flex-shrink-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+        <!-- Logo -->
+        <div class="px-6 py-5 border-b border-slate-700 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-building-columns text-blue-400 text-xl"></i>
+                <span class="font-bold text-lg leading-tight">Site Aidat<br><span class="text-xs font-normal text-slate-400">Yönetim Sistemi</span></span>
+            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+            {% if current_user.role == 'super_admin' %}
+                {% include 'shared/nav_super_admin.html' %}
+            {% elif current_user.role == 'site_admin' %}
+                {% include 'shared/nav_site_admin.html' %}
+            {% else %}
+                {% include 'shared/nav_resident.html' %}
+            {% endif %}
+        </nav>
+
+        <!-- User info -->
+        <div class="px-4 py-4 border-t border-slate-700">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {{ current_user.full_name[0] if current_user.full_name else current_user.username[0] }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">{{ current_user.full_name or current_user.username }}</p>
+                    <p class="text-xs text-slate-400">
+                        {% if current_user.role == 'super_admin' %}Süper Admin
+                        {% elif current_user.role == 'site_admin' %}Site Admin
+                        {% else %}Daire Sakini{% endif %}
+                    </p>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}"
+               class="mt-3 flex items-center gap-2 text-xs text-slate-400 hover:text-red-400 transition-colors">
+                <i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── MAIN ───────────────────────────────────────────────────── -->
+    <main class="flex-1 flex flex-col overflow-hidden min-w-0">
+        <!-- Topbar -->
+        <header class="bg-white border-b px-4 lg:px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <!-- Mobile menu button -->
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                {% if request.endpoint not in ['site_admin.dashboard', 'super_admin.dashboard', 'resident.dashboard'] %}
+                <button onclick="history.back()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </button>
+                {% endif %}
+                <h1 class="text-base lg:text-lg font-semibold text-gray-700">{% block page_title %}{% endblock %}</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                {% if current_user.role == 'site_admin' %}
+                {% set unread = namespace(count=0) %}
+                {% set notifs = [] %}
+                {% if current_user.is_authenticated %}
+                    {% set notifs = current_user | get_notifications %}
+                {% endif %}
+                <div class="relative">
+                    <a href="{{ url_for('site_admin.generate_notifications') }}"
+                       class="relative inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fa-solid fa-bell text-gray-500"></i>
+                        {% set unread_count = current_user | get_unread_count %}
+                        {% if unread_count > 0 %}
+                        <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                            {{ unread_count if unread_count < 10 else '9+' }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </div>
+                {% endif %}
+                <div class="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="clock"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Flash messages -->
+        <div class="px-4 lg:px-6 pt-4">
+            {% for cat, msg in get_flashed_messages(with_categories=true) %}
+            <div class="mb-2 px-4 py-3 rounded-lg text-sm flex items-center gap-3
+                {% if cat == 'success' %}bg-green-50 text-green-800 border border-green-200
+                {% elif cat == 'danger' %}bg-red-50 text-red-800 border border-red-200
+                {% elif cat == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
+                {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                <i class="fa-solid {% if cat == 'success' %}fa-circle-check{% elif cat == 'danger' %}fa-circle-xmark{% elif cat == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %} flex-shrink-0"></i>
+                {{ msg }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto px-4 lg:px-6 py-4">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script>
+    function updateClock() {
+        const el = document.getElementById('clock');
+        if (el) el.textContent = new Date().toLocaleString('tr-TR');
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

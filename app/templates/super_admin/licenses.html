@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Lisanslar{% endblock %}
+{% block page_title %}Lisans Yönetimi{% endblock %}
+
+{% block content %}
+<div class="flex justify-end mb-4">
+    <a href="{{ url_for('super_admin.new_license') }}"
+       class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <i class="fa-solid fa-plus"></i> Yeni Lisans
+    </a>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Lisans Anahtarı</th>
+                <th class="px-4 py-3 text-left">Açıklama</th>
+                <th class="px-4 py-3 text-left">Geçerlilik</th>
+                <th class="px-4 py-3 text-left">Kullanıcı</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">İşlem</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for lic in licenses %}
+            {% set suresi_doldu = lic.valid_until and lic.valid_until < today %}
+            <tr class="hover:bg-gray-50 {{ 'bg-red-50' if suresi_doldu }}">
+                <td class="px-4 py-3 font-mono text-xs">{{ lic.license_key }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ lic.description or '—' }}</td>
+                <td class="px-4 py-3">
+                    {% if lic.valid_until %}
+                    <span class="{{ 'text-red-600 font-medium' if suresi_doldu else 'text-gray-700' }}">
+                        {{ lic.valid_until.strftime('%d.%m.%Y') }}
+                        {% if suresi_doldu %}<br><span class="text-xs text-red-500">⚠ Süresi doldu</span>{% endif %}
+                    </span>
+                    {% else %}
+                    <span class="text-green-600">Süresiz</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs">
+                    {% set admin = lic.users.filter_by(role='site_admin').first() %}
+                    {{ admin.full_name or admin.username if admin else '—' }}
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium
+                        {% if suresi_doldu %}bg-red-100 text-red-700
+                        {% elif lic.is_active %}bg-green-100 text-green-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {% if suresi_doldu %}Süresi Doldu
+                        {% elif lic.is_active %}Aktif
+                        {% else %}Pasif{% endif %}
+                    </span>
+                </td>
+                <td class="px-4 py-3 flex gap-3">
+                    <a href="{{ url_for('super_admin.license_profile', lid=lic.id) }}"
+                       class="text-xs text-purple-600 hover:underline">Profil</a>
+                    <a href="{{ url_for('super_admin.edit_license', lid=lic.id) }}"
+                       class="text-xs text-green-600 hover:underline">Düzenle</a>
+                    <a href="{{ url_for('super_admin.toggle_license', lid=lic.id) }}"
+                       class="text-xs text-blue-600 hover:underline">
+                        {{ 'Pasifleştir' if lic.is_active else 'Aktifleştir' }}
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Henüz lisans yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

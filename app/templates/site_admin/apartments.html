@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Daireler — {{ block.name }}{% endblock %}
+{% block page_title %}{{ block.name }} — Daireler{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+    <a href="{{ url_for('site_admin.blocks') }}"
+       class="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1">
+        <i class="fa-solid fa-chevron-left text-xs"></i> Bloklara Dön
+    </a>
+    <div class="ml-auto flex gap-2">
+        <a href="{{ url_for('site_admin.bulk_apartments', bid=block.id) }}"
+           class="inline-flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+            <i class="fa-solid fa-layer-group"></i> Toplu Ekle
+        </a>
+        <a href="{{ url_for('site_admin.new_apartment', bid=block.id) }}"
+           class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fa-solid fa-plus"></i> Manuel Ekle
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Daire No</th>
+                <th class="px-4 py-3 text-left">Kat</th>
+                <th class="px-4 py-3 text-left">Aktif Sakin</th>
+                <th class="px-4 py-3 text-left">UAVT</th>
+                <th class="px-4 py-3 text-left">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for apt in apartments %}
+            {% set active_res = apt.residents.filter_by(is_active=True).first() %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ apt.number }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ apt.floor if apt.floor is not none else '—' }}</td>
+                <td class="px-4 py-3">
+                    {% if active_res %}
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                        {{ active_res.full_name() }}
+                        <span class="text-xs text-gray-400">({{ 'Mülk Sahibi' if active_res.resident_type == 'owner' else 'Kiracı' }})</span>
+                    </span>
+                    {% else %}
+                    <span class="text-gray-400 text-xs">Boş</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-500">{{ apt.uavt_code or '—' }}</td>
+                <td class="px-4 py-3 flex gap-2">
+                    <a href="{{ url_for('site_admin.residents', aid=apt.id) }}"
+                       class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
+                        Sakinler
+                    </a>
+                    <a href="{{ url_for('site_admin.edit_apartment', aid=apt.id) }}"
+                       class="text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors">
+                        Düzenle
+                    </a>
+                    <form method="POST" action="{{ url_for('site_admin.delete_apartment', aid=apt.id) }}"
+                          onsubmit="return confirm('Daire {{ apt.number }} ve tüm bağlı verileri silmek istediğinize emin misiniz?')"
+                          style="display:inline">
+                        <button type="submit"
+                                class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100 transition-colors">
+                            Sil
+                        </button>
+                    </form>
+                    {% if apt.aidat_muaf %}
+                    <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Muaf</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Henüz daire yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

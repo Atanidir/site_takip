@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Sistem Yöneticisinden Evraklar{% endblock %}
+{% block page_title %}Sistem Yöneticisinden Gelen Evraklar{% endblock %}
+
+{% block content %}
+<div class="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 mb-5 flex items-center gap-3">
+    <i class="fa-solid fa-circle-info text-blue-500"></i>
+    <p class="text-sm text-blue-700">Sistem yöneticisi tarafından sitenize gönderilen evraklar.</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Başlık</th>
+                <th class="px-4 py-3 text-left">Kategori</th>
+                <th class="px-4 py-3 text-left">Dosya</th>
+                <th class="px-4 py-3 text-left">Tarih</th>
+                <th class="px-4 py-3 text-left">İndir</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for doc in docs %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ doc.title }}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">{{ doc.category }}</span>
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-500">{{ doc.original_name }}</td>
+                <td class="px-4 py-3 text-xs">{{ doc.created_at.strftime('%d.%m.%Y') }}</td>
+                <td class="px-4 py-3">
+                    <a href="{{ url_for('site_admin.yonetici_evrak_indir', doc_id=doc.id) }}"
+                       class="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100">
+                        <i class="fa-solid fa-download mr-1"></i>İndir
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
+                Henüz evrak gönderilmedi.
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

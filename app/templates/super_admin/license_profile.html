@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% from 'shared/adres_dropdown.html' import adres_sec %}
+{% block title %}Lisans Profili{% endblock %}
+{% block page_title %}Lisans Profili — {{ license.description or license.license_key[:16] }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+
+    <!-- Lisans Özeti -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5 flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <i class="fa-solid fa-key text-blue-600"></i>
+        </div>
+        <div>
+            <p class="font-mono text-xs text-gray-500">{{ license.license_key }}</p>
+            <p class="font-semibold text-gray-800">{{ license.description or 'Açıklama yok' }}</p>
+        </div>
+        <div class="ml-auto text-right text-xs text-gray-500">
+            <p>Geçerlilik: {{ license.valid_until.strftime('%d.%m.%Y') if license.valid_until else 'Süresiz' }}</p>
+            <span class="px-2 py-0.5 rounded-full {{ 'bg-green-100 text-green-700' if license.is_active else 'bg-red-100 text-red-700' }}">
+                {{ 'Aktif' if license.is_active else 'Pasif' }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Profil Formu -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="POST" class="space-y-5">
+
+            <h3 class="font-semibold text-gray-700 border-b pb-2">Firma / Kişi Bilgileri</h3>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Firma Adı</label>
+                    <input type="text" name="firma_adi" value="{{ profile.firma_adi or '' if profile else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ör: ABC Yönetim A.Ş.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yetkili Adı</label>
+                    <input type="text" name="yetkili_adi" value="{{ profile.yetkili_adi or '' if profile else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ad Soyad">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vergi No</label>
+                    <input type="text" name="vergi_no" value="{{ profile.vergi_no or '' if profile else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vergi Dairesi</label>
+                    <input type="text" name="vergi_dairesi" value="{{ profile.vergi_dairesi or '' if profile else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">TC Kimlik No</label>
+                <input type="text" name="tc_no" id="tc_no" maxlength="11"
+                       value="{{ profile.tc_no or '' if profile else '' }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       oninput="tcKontrol(this)">
+                <p id="tc_msg" class="text-xs mt-1 hidden"></p>
+            </div>
+
+            <h3 class="font-semibold text-gray-700 border-b pb-2 pt-2">İletişim Bilgileri</h3>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                    <input type="tel" name="telefon" value="{{ profile.telefon or '' if profile else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="05XX XXX XXXX">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+                    <input type="email" name="email" value="{{ profile.email or '' if profile else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <h3 class="font-semibold text-gray-700 border-b pb-2 pt-2">Adres</h3>
+
+            {{ adres_sec(
+                province=profile.province if profile else '',
+                district=profile.district if profile else '',
+                neighborhood=profile.neighborhood if profile else ''
+            ) }}
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Açık Adres</label>
+                <textarea name="address" rows="2"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ profile.address or '' if profile else '' }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notlar</label>
+                <textarea name="notlar" rows="2"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ profile.notlar or '' if profile else '' }}</textarea>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit"
+                        class="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fa-solid fa-save mr-1"></i> Kaydet
+                </button>
+                <a href="{{ url_for('super_admin.licenses') }}"
+                   class="bg-gray-100 text-gray-700 text-sm px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    Geri
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function tcKontrol(input) {
+    const val = input.value.replace(/\D/g, '');
+    input.value = val;
+    const msg = document.getElementById('tc_msg');
+    if (val.length === 0) { msg.classList.add('hidden'); return; }
+    let hata = null;
+    if (val.length !== 11) hata = 'TC Kimlik No 11 haneli olmalıdır.';
+    else if (val[0] === '0') hata = 'İlk hane 0 olamaz.';
+    else {
+        const d = val.split('').map(Number);
+        const s1 = (d[0]+d[2]+d[4]+d[6]+d[8])*7 - (d[1]+d[3]+d[5]+d[7]);
+        if (s1 % 10 !== d[9]) hata = 'Geçersiz TC Kimlik No.';
+        else if (d.slice(0,10).reduce((a,b)=>a+b,0) % 10 !== d[10]) hata = 'Geçersiz TC Kimlik No.';
+    }
+    if (hata) {
+        msg.textContent = '✗ ' + hata;
+        msg.className = 'text-xs mt-1 text-red-600';
+        input.classList.add('border-red-400'); input.classList.remove('border-green-400');
+    } else {
+        msg.textContent = '✓ Geçerli TC Kimlik No';
+        msg.className = 'text-xs mt-1 text-green-600';
+        input.classList.add('border-green-400'); input.classList.remove('border-red-400');
+    }
+}
+window.addEventListener('load', () => { const el = document.getElementById('tc_no'); if (el && el.value) tcKontrol(el); });
+</script>
+{% endblock %}

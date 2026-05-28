@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Site Adminleri{% endblock %}
+{% block page_title %}Site Admin Yönetimi{% endblock %}
+
+{% block content %}
+<div class="flex justify-end mb-4">
+    <a href="{{ url_for('super_admin.new_site_admin') }}"
+       class="inline-flex items-center gap-2 bg-purple-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+        <i class="fa-solid fa-plus"></i> Yeni Site Admin
+    </a>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Ad Soyad</th>
+                <th class="px-4 py-3 text-left">Kullanıcı Adı</th>
+                <th class="px-4 py-3 text-left">E-posta</th>
+                <th class="px-4 py-3 text-left">Telefon</th>
+                <th class="px-4 py-3 text-left">Lisans</th>
+                <th class="px-4 py-3 text-left">Yönettiği Siteler</th>
+                <th class="px-4 py-3 text-left">Durum</th>
+                <th class="px-4 py-3 text-left">İşlem</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for admin in admins %}
+            {% set lic_suresi_doldu = admin.license and admin.license.valid_until and admin.license.valid_until < today %}
+            <tr class="hover:bg-gray-50 {{ 'bg-yellow-50' if lic_suresi_doldu }}">
+                <td class="px-4 py-3 font-medium whitespace-nowrap">{{ admin.full_name or '—' }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">{{ admin.username }}</td>
+                <td class="px-4 py-3">{{ admin.email }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">{{ admin.phone or '—' }}</td>
+                <td class="px-4 py-3 text-xs">
+                    {% if admin.license %}
+                    <span class="{{ 'text-red-600' if lic_suresi_doldu else 'text-gray-600' }}">
+                        {{ admin.license.license_key[:12] }}…
+                        {% if lic_suresi_doldu %}<br><span class="text-red-500">⚠ Süresi doldu</span>{% endif %}
+                    </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs">
+                    {% set sites = admin.managed_sites.all() %}
+                    {% if sites %}
+                    {% for s in sites %}
+                    <span class="inline-block bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs mr-1 mb-1">{{ s.name }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <span class="text-gray-400">Henüz site yok</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap
+                        {{ 'bg-green-100 text-green-700' if admin.is_active else 'bg-red-100 text-red-700' }}">
+                        {{ 'Aktif' if admin.is_active else 'Pasif' }}
+                    </span>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <div class="flex gap-3">
+                        <a href="{{ url_for('super_admin.edit_site_admin', uid=admin.id) }}"
+                           class="text-xs text-green-600 hover:underline">Düzenle</a>
+                        <a href="{{ url_for('super_admin.toggle_site_admin', uid=admin.id) }}"
+                           class="text-xs text-blue-600 hover:underline">
+                            {{ 'Pasifleştir' if admin.is_active else 'Aktifleştir' }}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Henüz site admin yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

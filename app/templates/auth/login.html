@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Giriş Yap — Site Aidat Takip{% endblock %}
+
+{% block auth_content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-800 to-blue-900 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-2xl mb-4 shadow-xl">
+                <i class="fa-solid fa-building-columns text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Site Aidat Takip</h1>
+            <p class="text-blue-200 text-sm mt-1">Yönetim Sistemi</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Hesabınıza Giriş Yapın</h2>
+
+            {% for cat, msg in get_flashed_messages(with_categories=true) %}
+            <div class="mb-4 px-4 py-3 rounded-lg text-sm
+                {% if cat == 'danger' %}bg-red-50 text-red-700 border border-red-200
+                {% elif cat == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+                {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                {{ msg }}
+            </div>
+            {% endfor %}
+
+            <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı Adı</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" name="username" required autofocus
+                               class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Kullanıcı adı veya TC Kimlik No">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="password" name="password" required
+                               class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" name="remember" id="remember" class="mr-2 rounded">
+                    <label for="remember" class="text-sm text-gray-600">Beni hatırla</label>
+                </div>
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm">
+                    Giriş Yap
+                </button>
+            </form>
+
+            <!-- Sakinler için bilgilendirme -->
+            <div class="mt-5 pt-5 border-t border-gray-100">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                    <p class="text-xs text-blue-700 font-medium mb-1">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Daire Sakinleri İçin
+                    </p>
+                    <p class="text-xs text-blue-600">
+                        İlk kez giriş yapacaksanız veya şifrenizi unuttuysanız aşağıdaki bağlantıyı kullanın.
+                        Kullanıcı adınız TC Kimlik Numaranızdır.
+                    </p>
+                </div>
+                <a href="{{ url_for('auth.forgot_password') }}"
+                   class="mt-3 flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fa-solid fa-key"></i> İlk Giriş / Şifremi Unuttum
+                </a>
+            </div>
+
+            <!-- Site Admin için -->
+            <div class="mt-3 text-center">
+                <a href="{{ url_for('auth.reset_password_request') }}"
+                   class="text-xs text-gray-400 hover:text-gray-600">
+                    Site Admin şifremi unuttum
+                </a>
+            </div>
+        </div>
+
+        <p class="text-center text-blue-300 text-xs mt-6">© 2026 Site Aidat Yönetim Sistemi</p>
+    </div>
+</div>
+{% endblock %}

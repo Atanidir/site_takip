@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Site Admin Mesajları{% endblock %}
+{% block page_title %}Site Admin Mesajları{% endblock %}
+
+{% block content %}
+<div class="space-y-3">
+    {% for m in mesajlar %}
+    <div class="bg-white rounded-xl shadow-sm border p-5 border-gray-100">
+        <div class="flex items-start justify-between mb-2">
+            <div>
+                <p class="font-semibold text-gray-800">{{ m.title }}</p>
+                <p class="text-xs text-gray-500 mt-0.5">
+                    <i class="fa-solid fa-user mr-1"></i>{{ m.sender.full_name if m.sender else '—' }}
+                    {% if m.site %} — {{ m.site.name }}{% endif %}
+                </p>
+            </div>
+            <span class="text-xs text-gray-400 whitespace-nowrap ml-3">
+                {{ m.created_at.strftime('%d.%m.%Y %H:%M') }}
+            </span>
+        </div>
+        <p class="text-sm text-gray-600 whitespace-pre-wrap mt-2 pt-2 border-t border-gray-100">{{ m.message }}</p>
+    </div>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+        <i class="fa-solid fa-envelope-open text-4xl mb-3 block"></i>
+        <p>Henüz mesaj gelmedi.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Site Admin Evrakları{% endblock %}
+{% block page_title %}Site Adminlerine Gönderilen Evraklar{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap gap-3 mb-5 items-center">
+    <form method="GET" class="flex gap-2">
+        <select name="user_id" onchange="this.form.submit()"
+                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Tüm Site Adminler</option>
+            {% for u in site_adminler %}
+            <option value="{{ u.id }}" {{ 'selected' if secili_user == u.id }}>{{ u.full_name or u.username }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <a href="{{ url_for('super_admin.admin_evrak_yukle') }}"
+       class="ml-auto inline-flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700">
+        <i class="fa-solid fa-upload"></i> Evrak Gönder
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-3 text-left">Alıcı (Site Admin)</th>
+                <th class="px-4 py-3 text-left">Başlık</th>
+                <th class="px-4 py-3 text-left">Kategori</th>
+                <th class="px-4 py-3 text-left">Dosya</th>
+                <th class="px-4 py-3 text-left">Tarih</th>
+                <th class="px-4 py-3 text-left">İşlem</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for doc in docs %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-xs font-medium text-blue-600">
+                    {{ doc.target_user.full_name if doc.target_user else '—' }}
+                </td>
+                <td class="px-4 py-3 font-medium">{{ doc.title }}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">{{ doc.category }}</span>
+                </td>
+                <td class="px-4 py-3 text-xs text-gray-500">{{ doc.original_name }}</td>
+                <td class="px-4 py-3 text-xs">{{ doc.created_at.strftime('%d.%m.%Y') }}</td>
+                <td class="px-4 py-3">
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('super_admin.admin_evrak_indir', doc_id=doc.id) }}"
+                           class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">
+                            <i class="fa-solid fa-download mr-1"></i>İndir
+                        </a>
+                        <form method="POST" action="{{ url_for('super_admin.admin_evrak_sil', doc_id=doc.id) }}"
+                              onsubmit="return confirm('Bu evrakı silmek istediğinize emin misiniz?')">
+                            <button type="submit" class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100">Sil</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Henüz evrak gönderilmedi.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}
