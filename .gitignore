@@ -1,0 +1,6 @@
+.env
+stderr.log
+uploads/
+__pycache__/
+*.pyc
+*.log
