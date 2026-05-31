@@ -25,6 +25,27 @@
     </a>
 </div>
 
+<!-- Tekrar Eden Gider Hatırlatması -->
+{% if tekrar_eden %}
+<div class="bg-amber-50 border border-amber-300 rounded-xl px-5 py-4 mb-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <i class="fa-solid fa-rotate text-amber-500 text-xl"></i>
+        <div>
+            <p class="text-sm font-semibold text-amber-800">{{ tekrar_eden|length }} adet tekrar eden gider var</p>
+            <p class="text-xs text-amber-600">Geçen aydan kopyalanabilir: {{ tekrar_eden|map(attribute='expense_type')|map(attribute='name')|join(', ') }}</p>
+        </div>
+    </div>
+    <form method="POST" action="{{ url_for('site_admin.tekrar_eden_ekle') }}">
+        <input type="hidden" name="year" value="{{ year }}">
+        <input type="hidden" name="month" value="{{ month }}">
+        <button type="submit"
+            class="bg-amber-500 hover:bg-amber-600 text-white text-sm px-4 py-2 rounded-lg whitespace-nowrap">
+            <i class="fa-solid fa-plus mr-1"></i> Bu Aya Ekle
+        </button>
+    </form>
+</div>
+{% endif %}
+
 <!-- Toplam -->
 <div class="bg-green-50 border border-green-200 rounded-xl px-5 py-3 flex items-center justify-between mb-4">
     <span class="text-sm text-green-700 font-medium">{{ year }} / {{ month }}. Ay Toplam Gider</span>
@@ -47,7 +68,12 @@
         <tbody class="divide-y divide-gray-100">
             {% for exp in expenses %}
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-xs">{{ exp.expense_date.strftime('%d.%m.%Y') }}</td>
+                <td class="px-4 py-3 text-xs">
+                    {{ exp.expense_date.strftime('%d.%m.%Y') }}
+                    {% if exp.is_recurring %}
+                    <span class="ml-1 text-amber-500" title="Tekrar Eden Gider"><i class="fa-solid fa-rotate"></i></span>
+                    {% endif %}
+                </td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">{{ exp.category.name }}</span>
                 </td>

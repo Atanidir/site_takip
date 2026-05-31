@@ -107,13 +107,23 @@
         </div>
         {% endfor %}
     </div>
-    {% if site.iban %}
+{% if site.iban %}
     <div class="mt-3 bg-blue-50 rounded-lg px-4 py-3 text-xs text-blue-700">
         <p class="font-medium">Ödeme için IBAN:</p>
         <p class="font-mono mt-1">{{ site.iban }}</p>
         {% if site.banka_adi %}<p>{{ site.banka_adi }} — {{ site.hesap_sahibi }}</p>{% endif %}
     </div>
     {% endif %}
+    {% if odeme_cfg %}
+    <div class="mt-3">
+        <a href="{{ url_for('resident.odeme_baslat') }}"
+           class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+            <i class="fa-solid fa-credit-card"></i> Kredi Kartı ile Öde
+        </a>
+    </div>
+    {% endif %}
+
+
 </div>
 {% endif %}
 
@@ -250,4 +260,51 @@
     </div>
 </div>
 {% endif %}
+{% if duyurular %}
+<!-- Duyuru Popup -->
+<div id="duyuruModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4 flex items-center justify-between">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn"></i> Duyurular
+            </h3>
+            <span class="text-blue-200 text-sm">{{ duyurular|length }} duyuru</span>
+        </div>
+        <div class="p-6 max-h-96 overflow-y-auto space-y-4">
+            {% for d in duyurular %}
+            <div class="border-l-4 border-blue-500 pl-4">
+                <p class="font-semibold text-gray-800 mb-1">{{ d.title }}</p>
+                <p class="text-sm text-gray-600">{{ d.content }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ d.publish_at.strftime('%d.%m.%Y %H:%M') }}</p>
+            </div>
+            {% if not loop.last %}<hr class="border-gray-100">{% endif %}
+            {% endfor %}
+        </div>
+        <div class="px-6 py-4 bg-gray-50 flex justify-end">
+            <button onclick="duyuruKapat()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded-lg transition-colors">
+                Tamam, Anladım
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const DUYURU_KEY = 'duyuru_goruldu_{{ duyurular[0].id }}_{{ duyurular|length }}';
+const bugun = new Date().toDateString();
+
+function duyuruKapat() {
+    document.getElementById('duyuruModal').classList.add('hidden');
+    localStorage.setItem(DUYURU_KEY, bugun);
+}
+
+window.addEventListener('load', function() {
+    const goruldu = localStorage.getItem(DUYURU_KEY);
+    if (goruldu !== bugun) {
+        document.getElementById('duyuruModal').classList.remove('hidden');
+    }
+});
+</script>
+{% endif %}
+
 {% endblock %}

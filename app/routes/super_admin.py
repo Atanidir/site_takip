@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from functools import wraps
-from datetime import date
+from datetime import date, datetime
 from app import db
 from app.models.models import User, License, LicenseProfile, Site
 
@@ -275,7 +275,7 @@ def settings():
         cfg.smtp_port       = int(request.form.get('smtp_port', 587))
         cfg.smtp_user       = request.form.get('smtp_user')
         cfg.smtp_from_name  = request.form.get('smtp_from_name')
-        cfg.smtp_from_email = request.form.get('smtp_user')  # Kullanıcı adı = gönderen
+        cfg.smtp_from_email = request.form.get('smtp_user')
         cfg.smtp_use_tls    = bool(request.form.get('smtp_use_tls'))
         cfg.mail_active     = bool(request.form.get('mail_active'))
         if request.form.get('smtp_pass'):
@@ -294,7 +294,6 @@ def settings():
         db.session.commit()
         flash('Ayarlar kaydedildi.', 'success')
 
-        # Test mail/SMS
         if request.form.get('test_mail') and cfg.mail_active:
             from app.utils import send_mail
             test_to = request.form.get('test_email') or cfg.smtp_from_email
@@ -347,7 +346,6 @@ def admin_evraklar():
     if user_id:
         q = q.filter_by(target_user_id=user_id)
     docs  = q.order_by(AdminDocument.created_at.desc()).all()
-    # Site adminlerini getir
     site_adminler = User.query.filter_by(role='site_admin').all()
     return render_template('super_admin/admin_evraklar.html',
                            docs=docs, site_adminler=site_adminler,
@@ -436,10 +434,67 @@ def admin_evrak_sil(doc_id):
 @super_admin_required
 def site_mesajlari():
     from app.models.models import AdminMessage
-    mesajlar = AdminMessage.query.order_by(
-        AdminMessage.is_read, AdminMessage.created_at.desc()
-    ).all()
-    for m in mesajlar:
-        m.is_read = True
-    db.session.commit()
+    durum = request.args.get('durum', 'acik')
+    if durum == 'kapali':
+        mesajlar = AdminMessage.query.filter_by(is_closed=True)            .order_by(AdminMessage.created_at.desc()).all()
+    else:
+        mesajlar = AdminMessage.query.filter_by(is_closed=False)            .order_by(AdminMessage.is_read, AdminMessage.created_at.desc()).all()
+        for m in mesajlar:
+            m.is_read = True
+            m.super_admin_read = True
+        db.session.commit()
     return render_template('super_admin/site_mesajlari.html', mesajlar=mesajlar)
+
+
+@super_admin_bp.route('/site-mesajlari/<int:mid>/cevapla', methods=['POST'])
+@login_required
+@super_admin_required
+def site_mesaj_cevapla(mid):
+    from app.models.models import AdminMessage
+    m = AdminMessage.query.get_or_404(mid)
+    cevap = request.form.get('reply', '').strip()
+    if cevap:
+        m.reply      = cevap
+        m.reply_at   = datetime.utcnow()
+        m.reply_read = False
+        db.session.commit()
+        flash('Cevap gönderildi.', 'success')
+    return redirect(url_for('super_admin.site_mesajlari'))
+    
+    
+    # ── Context Processor ─────────────────────────────────────────────────────
+@super_admin_bp.app_context_processor
+def inject_unread_messages():
+    from flask_login import current_user
+    from app.models.models import AdminMessage
+    count = 0
+    try:
+        if current_user.is_authenticated and current_user.role == 'super_admin':
+            count = AdminMessage.query.filter_by(is_read=False).count()
+    except Exception:
+        pass
+    return dict(super_admin_unread=count)
+
+# ── Mesaj Kapat ───────────────────────────────────────────────────────────
+@super_admin_bp.route('/site-mesajlari/<int:mid>/kapat', methods=['POST'])
+@login_required
+@super_admin_required
+def site_mesaj_kapat(mid):
+    from app.models.models import AdminMessage
+    m = AdminMessage.query.get_or_404(mid)
+    m.is_closed = True
+    db.session.commit()
+    flash('Mesaj kapatıldı.', 'success')
+    return redirect(url_for('super_admin.site_mesajlari'))
+
+
+# ── Kapatılmış Mesajları Toplu Sil ───────────────────────────────────────
+@super_admin_bp.route('/site-mesajlari/toplu-sil', methods=['POST'])
+@login_required
+@super_admin_required
+def site_mesaj_toplu_sil():
+    from app.models.models import AdminMessage
+    AdminMessage.query.filter_by(is_closed=True).delete()
+    db.session.commit()
+    flash('Kapatılmış mesajlar silindi.', 'success')
+    return redirect(url_for('super_admin.site_mesajlari'))

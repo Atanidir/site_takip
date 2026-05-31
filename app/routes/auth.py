@@ -21,7 +21,7 @@ def _role_url(user):
 def index():
     if current_user.is_authenticated:
         return redirect(_role_url(current_user))
-    return redirect(url_for('auth.login'))
+    return render_template('landing.html')
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])

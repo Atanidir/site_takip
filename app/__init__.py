@@ -83,6 +83,41 @@ def create_app(config_name='default'):
         return Notification.query.filter_by(user_id=user.id)\
                    .order_by(Notification.created_at.desc()).limit(10).all()
 
+    @app.context_processor
+    def inject_unread_admin_reply():
+        from flask_login import current_user
+        from app.models.models import AdminMessage
+        count = 0
+        try:
+            if current_user.is_authenticated and current_user.role == 'site_admin':
+                count = AdminMessage.query.filter_by(
+                    sender_id=current_user.id,
+                    reply_read=False
+                ).filter(AdminMessage.reply != None).count()
+        except Exception:
+            pass
+        return dict(site_admin_unread_reply=count)
+    @app.context_processor
+    def inject_ozel_gun():
+        from datetime import date
+        bugun = date.today()
+        ay, gun = bugun.month, bugun.day
+        ozel_gun = None
+        if ay == 5 and gun == 31:
+            ozel_gun = {"baslik": "Test Banneri", "mesaj": "Bu bir test mesajidir.", "renk": "#059669", "emoji": "[T]"}
+        if ay == 5 and gun == 31:
+            ozel_gun = {"baslik": "Test Banneri", "mesaj": "Bu bir test mesajidir.", "renk": "#059669", "emoji": "[T]"}
+        if ay == 1 and gun == 1:
+            ozel_gun = {"baslik": "Mutlu Yillar!", "mesaj": "Yeni yiliniz saglik ve mutluluk getirsin.", "renk": "#7c3aed"}
+        elif ay == 4 and gun == 23:
+            ozel_gun = {"baslik": "23 Nisan Kutlu Olsun!", "mesaj": "Ulusal Egemenlik ve Cocuk Bayrami kutlu olsun.", "renk": "#dc2626"}
+        elif ay == 5 and gun == 19:
+            ozel_gun = {"baslik": "19 Mayis Kutlu Olsun!", "mesaj": "Ataturku Anma, Genclik ve Spor Bayrami kutlu olsun.", "renk": "#dc2626"}
+        elif ay == 8 and gun == 30:
+            ozel_gun = {"baslik": "30 Agustos Zafer Bayrami!", "mesaj": "Buyuk Zaferin yil donumunu kutluyoruz.", "renk": "#dc2626"}
+        elif ay == 10 and gun == 29:
+            ozel_gun = {"baslik": "29 Ekim Cumhuriyet Bayrami!", "mesaj": "Cumhuriyetimizin kurulusunun yil donumunu kutluyoruz.", "renk": "#dc2626"}
+        return dict(ozel_gun=ozel_gun)
     # Blueprint kayıtları
     from app.routes.auth        import auth_bp
     from app.routes.super_admin import super_admin_bp

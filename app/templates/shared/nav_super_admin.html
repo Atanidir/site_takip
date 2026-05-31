@@ -24,5 +24,11 @@
 </a>
 <a href="{{ url_for('super_admin.site_mesajlari') }}"
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
-    <i class="fa-solid fa-envelope w-4"></i> Site Admin Mesajları
+    <i class="fa-solid fa-envelope w-4"></i>
+    <span class="flex-1">Site Admin Mesajları</span>
+    {% if super_admin_unread > 0 %}
+    <span class="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
+        {{ super_admin_unread if super_admin_unread < 10 else '9+' }}
+    </span>
+    {% endif %}
 </a>

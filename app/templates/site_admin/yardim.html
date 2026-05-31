@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Yardım{% endblock %}
+{% block page_title %}Yardım & Kılavuzlar{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="grid grid-cols-1 gap-6">
+
+        <!-- Site Admin Kılavuzu -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-book text-blue-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-800 mb-1">Site Admin Kullanıcı Kılavuzu</h3>
+                    <p class="text-sm text-gray-500 mb-4">Site kurulumu, sakin yönetimi, aidat ve gider takibi, raporlar ve ayarlar hakkında kapsamlı rehber.</p>
+                    <a href="{{ url_for('static', filename='docs/SiteAdmin_Kilavuz.pdf') }}" target="_blank"
+                       class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+                        <i class="fa-solid fa-file-pdf"></i> PDF İndir / Görüntüle
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Rehberi -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-headset text-green-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-800 mb-1">Teknik Destek</h3>
+                    <p class="text-sm text-gray-500 mb-4">Sorunlarınız için bize ulaşabilirsiniz.</p>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <p><i class="fa-solid fa-phone mr-2 text-gray-400"></i>+90 543 580 46 46</p>
+                        <p><i class="fa-solid fa-envelope mr-2 text-gray-400"></i>info@probissite.com.tr</p>
+                        <p><i class="fa-solid fa-globe mr-2 text-gray-400"></i>probissite.com.tr</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistem Yöneticisine Mesaj -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-center justify-between">
+            <div>
+                <p class="font-semibold text-blue-800">Sorunuz mu var?</p>
+                <p class="text-sm text-blue-600">Sistem yöneticisine doğrudan mesaj gönderin.</p>
+            </div>
+            <a href="{{ url_for('site_admin.superadmine_mesaj') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors whitespace-nowrap">
+                <i class="fa-solid fa-paper-plane mr-1"></i> Mesaj Gönder
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

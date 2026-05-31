@@ -69,7 +69,7 @@
 </a>
 <a href="{{ url_for('site_admin.settings') }}"
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'site_admin.settings' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
-    <i class="fa-solid fa-gear w-4"></i> İletişim Ayarları
+    <i class="fa-solid fa-gear w-4"></i> Ayarlar
 </a>
 <a href="{{ url_for('site_admin.yonetici_evraklar') }}"
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'yonetici_evrak' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
@@ -77,5 +77,19 @@
 </a>
 <a href="{{ url_for('site_admin.superadmine_mesaj') }}"
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'superadmine_mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
-    <i class="fa-solid fa-paper-plane w-4"></i> Sistem Yöneticisine Mesaj
+    <i class="fa-solid fa-paper-plane w-4"></i>
+    <span class="flex-1">Sistem Yöneticisine Mesaj</span>
+    {% if site_admin_unread_reply > 0 %}
+    <span class="bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
+        {{ site_admin_unread_reply if site_admin_unread_reply < 10 else '9+' }}
+    </span>
+    {% endif %}
+</a>
+<a href="{{ url_for('site_admin.duyurular') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'duyuru' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-bullhorn w-4"></i> Duyurular
+</a>
+<a href="{{ url_for('site_admin.yardim') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'site_admin.yardim' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-circle-question w-4"></i> Yardım
 </a>

@@ -21,6 +21,15 @@
            {{ 'bg-purple-600 text-white' if durum == 'tumu' else 'bg-white text-gray-600 border border-gray-200 hover:border-purple-400' }}">
         Tümü
     </a>
+    {% if durum == 'kapali' %}
+    <form method="POST" action="{{ url_for('site_admin.sakin_mesaj_toplu_sil') }}"
+          onsubmit="return confirm('Tüm kapatılmış mesajlar silinecek. Emin misiniz?')">
+        <button type="submit"
+            class="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white">
+            <i class="fa-solid fa-trash mr-1"></i> Tümünü Sil
+        </button>
+    </form>
+    {% endif %}
 </div>
 
 <div class="space-y-4">

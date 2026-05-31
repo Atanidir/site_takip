@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProbisYönetim — Profesyonel Site Yönetimi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1e3a8a;
+  --blue: #3b82f6;
+  --lightblue: #93c5fd;
+  --green: #10b981;
+  --dark: #0f172a;
+  --gray: #64748b;
+  --lightgray: #f1f5f9;
+  --white: #ffffff;
+  --red: #c0392b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--dark);
+  background: var(--white);
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(30,58,138,0.08);
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav-logo svg { width: 180px; height: 54px; }
+
+.nav-logo-text {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.nav-logo-text span:first-child { color: var(--navy); }
+.nav-logo-text span:last-child { color: var(--blue); }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--navy); }
+
+.nav-cta {
+  background: var(--navy);
+  color: var(--white) !important;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500 !important;
+  transition: background 0.2s !important;
+}
+
+.nav-cta:hover { background: var(--blue) !important; color: var(--white) !important; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 5% 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 30% 40%, rgba(59,130,246,0.15) 0%, transparent 50%),
+              radial-gradient(circle at 70% 60%, rgba(16,185,129,0.1) 0%, transparent 50%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(16,185,129,0.2);
+  border: 1px solid rgba(16,185,129,0.4);
+  color: #34d399;
+  padding: 6px 18px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 28px;
+  letter-spacing: 0.5px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 6vw, 80px);
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+.hero h1 span { color: #60a5fa; }
+
+.hero p {
+  font-size: 18px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.7;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: var(--white);
+  padding: 16px 36px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(16,185,129,0.4);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: var(--white);
+  padding: 16px 36px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+  margin-top: 64px;
+  flex-wrap: wrap;
+}
+
+.hero-stat {
+  text-align: center;
+  color: var(--white);
+}
+
+.hero-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+.hero-stat-label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+
+/* SECTION */
+section { padding: 100px 5%; }
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.section-sub {
+  font-size: 17px;
+  color: var(--gray);
+  line-height: 1.7;
+  max-width: 560px;
+}
+
+/* FEATURES */
+.features { background: var(--white); }
+
+.features-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.features-header .section-sub { margin: 0 auto; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: var(--white);
+  border: 1px solid rgba(30,58,138,0.08);
+  border-radius: 16px;
+  padding: 36px 32px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--navy), var(--blue));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.feature-card:hover {
+  box-shadow: 0 20px 60px rgba(30,58,138,0.1);
+  transform: translateY(-4px);
+  border-color: rgba(30,58,138,0.15);
+}
+
+.feature-card:hover::before { transform: scaleX(1); }
+
+.feature-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.feature-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.feature-card p {
+  font-size: 15px;
+  color: var(--gray);
+  line-height: 1.7;
+}
+
+/* HOW IT WORKS */
+.how {
+  background: var(--lightgray);
+}
+
+.how-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.how-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.how-step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.how-step-num {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.how-step-content h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.how-step-content p {
+  font-size: 15px;
+  color: var(--gray);
+  line-height: 1.7;
+}
+
+.how-visual {
+  background: linear-gradient(135deg, var(--navy), var(--blue));
+  border-radius: 20px;
+  padding: 40px;
+  color: var(--white);
+}
+
+.how-visual-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.6;
+  margin-bottom: 24px;
+}
+
+.how-visual-stat {
+  margin-bottom: 20px;
+}
+
+.how-visual-stat-label {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.how-visual-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.how-visual-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--green);
+}
+
+.how-visual-nums {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.how-visual-num {
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.how-visual-num-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+.how-visual-num-label {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+/* DEMO */
+.demo {
+  background: linear-gradient(135deg, #0f172a, #1e3a8a);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.demo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.demo-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.demo .section-title { color: var(--white); }
+.demo .section-sub { color: rgba(255,255,255,0.65); margin: 0 auto 48px; }
+
+.demo-form {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 40px;
+  backdrop-filter: blur(10px);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--white);
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: var(--green); }
+
+.form-group select option { background: var(--navy); color: var(--white); }
+
+.form-submit {
+  width: 100%;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  padding: 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.3s;
+}
+
+.form-submit:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(16,185,129,0.4);
+}
+
+/* CONTACT */
+.contact { background: var(--white); }
+
+.contact-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.contact-info { display: flex; flex-direction: column; gap: 28px; }
+
+.contact-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.contact-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.contact-item-content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.contact-item-content p {
+  font-size: 17px;
+  color: var(--navy);
+  font-weight: 500;
+}
+
+.contact-item-content a {
+  color: var(--navy);
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.contact-item-content a:hover { color: var(--blue); }
+
+.contact-map {
+  background: var(--lightgray);
+  border-radius: 20px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--gray);
+  border: 1px solid rgba(30,58,138,0.08);
+}
+
+.contact-map-icon { font-size: 48px; }
+.contact-map p { font-size: 15px; }
+
+/* FOOTER */
+footer {
+  background: var(--dark);
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  padding: 32px 5%;
+  font-size: 14px;
+}
+
+footer strong { color: var(--white); }
+
+/* SUCCESS MESSAGE */
+.success-msg {
+  display: none;
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.4);
+  border-radius: 10px;
+  padding: 16px;
+  color: #34d399;
+  font-size: 15px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .how-inner { grid-template-columns: 1fr; gap: 40px; }
+  .contact-inner { grid-template-columns: 1fr; gap: 40px; }
+  .form-row { grid-template-columns: 1fr; }
+  .hero-stats { gap: 28px; }
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-content > * {
+  animation: fadeUp 0.8s ease forwards;
+  opacity: 0;
+}
+
+.hero-badge { animation-delay: 0.1s; }
+.hero h1 { animation-delay: 0.2s; }
+.hero p { animation-delay: 0.3s; }
+.hero-buttons { animation-delay: 0.4s; }
+.hero-stats { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" height="48">
+
+      <!-- Sol bölüm çatı -->
+      <polygon points="10,32 33,32 33,24 16,27" fill="#c0392b"/>
+
+      <!-- Sağ yüksek bölüm çatı -->
+      <polygon points="33,22 63,22 58,13 38,16" fill="#c0392b"/>
+
+      <!-- Sol bina gövdesi -->
+      <rect x="10" y="32" width="23" height="20" fill="#1a5276"/>
+
+      <!-- Sağ yüksek bina gövdesi -->
+      <rect x="33" y="22" width="30" height="30" fill="#1a5276"/>
+
+      <!-- BACA sağ -->
+      <rect x="54" y="9" width="5" height="7" rx="1" fill="#7f8c8d"/>
+      <rect x="53" y="7" width="7" height="3" rx="1" fill="#95a5a6"/>
+
+      <!-- DUMAN sağ -->
+      <path d="M 57 6 Q 60 3 57 0" fill="none" stroke="#bdc3c7" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+      <path d="M 55 6 Q 52 3 55 0" fill="none" stroke="#bdc3c7" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+
+      <!-- BACA sol -->
+      <rect x="22" y="21" width="4" height="6" rx="1" fill="#7f8c8d"/>
+      <rect x="21" y="19" width="6" height="3" rx="1" fill="#95a5a6"/>
+
+      <!-- DUMAN sol -->
+      <path d="M 24 18 Q 27 15 24 12" fill="none" stroke="#bdc3c7" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+
+      <!-- Pencereler sol -->
+      <rect x="14" y="35" width="6" height="4" rx="1" fill="#aed6f1"/>
+      <rect x="23" y="35" width="6" height="4" rx="1" fill="#aed6f1"/>
+      <rect x="14" y="42" width="6" height="4" rx="1" fill="#7fb3d3"/>
+      <rect x="23" y="42" width="6" height="4" rx="1" fill="#7fb3d3"/>
+
+      <!-- Pencereler sağ -->
+      <rect x="37" y="25" width="6" height="4" rx="1" fill="#d6eaf8"/>
+      <rect x="47" y="25" width="6" height="4" rx="1" fill="#d6eaf8"/>
+      <rect x="37" y="32" width="6" height="4" rx="1" fill="#aed6f1"/>
+      <rect x="47" y="32" width="6" height="4" rx="1" fill="#aed6f1"/>
+      <rect x="37" y="39" width="6" height="4" rx="1" fill="#7fb3d3"/>
+      <rect x="47" y="39" width="6" height="4" rx="1" fill="#7fb3d3"/>
+      <rect x="37" y="46" width="6" height="4" rx="1" fill="#aed6f1"/>
+      <rect x="47" y="46" width="6" height="4" rx="1" fill="#aed6f1"/>
+
+      <!-- Kapılar -->
+      <rect x="41" y="46" width="9" height="6" rx="1" fill="#154360"/>
+      <rect x="16" y="46" width="7" height="6" rx="1" fill="#154360"/>
+
+      <!-- Zemin -->
+      <line x1="6" y1="52" x2="68" y2="52" stroke="#1a5276" stroke-width="1.5"/>
+
+      <!-- Aksan çizgisi -->
+      <rect x="76" y="52" width="28" height="1.5" rx="1" fill="#10b981"/>
+      <rect x="108" y="52" width="10" height="1.5" rx="1" fill="#1a5276" opacity="0.5"/>
+
+      <!-- Slogan -->
+      <text x="76" y="50" font-family="Arial, sans-serif" font-size="6" font-weight="400" fill="#64748b" letter-spacing="1">PROFESYONEL SİTE YÖNETİMİ</text>
+
+      <!-- Yönetim -->
+      <text x="76" y="44" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#3b82f6">Yönetim</text>
+
+      <!-- Probis -->
+      <text x="76" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#1e3a8a">Probis</text>
+
+      <!-- Dijital aksan -->
+      <circle cx="69" cy="26" r="2" fill="#10b981"/>
+      <circle cx="73" cy="26" r="1.2" fill="#10b981" opacity="0.6"/>
+
+    </svg>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#ozellikler">Özellikler</a></li>
+    <li><a href="#nasil-calisir">Nasıl Çalışır</a></li>
+    <li><a href="#iletisim">İletişim</a></li>
+    <li><a href="#demo" class="nav-cta">Demo Talep Et</a></li>
+    <li><a href="https://probissite.com.tr/login" class="nav-cta" style="background:var(--green);margin-left:8px">Giriş Yap →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <!-- HERO LOGO -->
+    <div style="margin-bottom:32px; display:flex; justify-content:center;">
+      <svg viewBox="0 0 280 90" xmlns="http://www.w3.org/2000/svg" width="320">
+
+        <!-- Sol bölüm çatı -->
+        <polygon points="10,46 43,46 43,34 20,39" fill="#c0392b"/>
+
+        <!-- Sağ yüksek bölüm çatı -->
+        <polygon points="43,30 93,30 85,16 51,21" fill="#c0392b"/>
+
+        <!-- Sol bina gövdesi -->
+        <rect x="10" y="46" width="33" height="28" fill="#1a5276"/>
+
+        <!-- Sağ yüksek bina gövdesi -->
+        <rect x="43" y="30" width="50" height="44" fill="#1a5276"/>
+
+        <!-- BACA sağ -->
+        <rect x="76" y="10" width="8" height="10" rx="1" fill="#95a5a6"/>
+        <rect x="74" y="7" width="12" height="5" rx="1" fill="#aaaaaa"/>
+
+        <!-- DUMAN sağ -->
+        <path d="M 80 6 Q 86 0 80 -6" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 77 5 Q 71 -1 77 -7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- BACA sol -->
+        <rect x="28" y="27" width="6" height="9" rx="1" fill="#95a5a6"/>
+        <rect x="26" y="24" width="10" height="5" rx="1" fill="#aaaaaa"/>
+
+        <!-- DUMAN sol -->
+        <path d="M 31 23 Q 36 17 31 11" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- Pencereler sol -->
+        <rect x="15" y="50" width="9" height="6" rx="1" fill="#aed6f1"/>
+        <rect x="29" y="50" width="9" height="6" rx="1" fill="#aed6f1"/>
+        <rect x="15" y="60" width="9" height="6" rx="1" fill="#7fb3d3"/>
+        <rect x="29" y="60" width="9" height="6" rx="1" fill="#7fb3d3"/>
+
+        <!-- Pencereler sağ -->
+        <rect x="49" y="35" width="9" height="6" rx="1" fill="#d6eaf8"/>
+        <rect x="64" y="35" width="9" height="6" rx="1" fill="#d6eaf8"/>
+        <rect x="49" y="45" width="9" height="6" rx="1" fill="#aed6f1"/>
+        <rect x="64" y="45" width="9" height="6" rx="1" fill="#aed6f1"/>
+        <rect x="49" y="55" width="9" height="6" rx="1" fill="#7fb3d3"/>
+        <rect x="64" y="55" width="9" height="6" rx="1" fill="#7fb3d3"/>
+        <rect x="49" y="65" width="9" height="6" rx="1" fill="#aed6f1"/>
+        <rect x="64" y="65" width="9" height="6" rx="1" fill="#aed6f1"/>
+
+        <!-- Kapılar -->
+        <rect x="57" y="65" width="14" height="9" rx="1" fill="#154360"/>
+        <rect x="18" y="65" width="11" height="9" rx="1" fill="#154360"/>
+
+        <!-- Zemin -->
+        <line x1="4" y1="74" x2="100" y2="74" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+
+        <!-- Aksan çizgisi -->
+        <rect x="110" y="74" width="42" height="2" rx="1" fill="#10b981"/>
+        <rect x="156" y="74" width="16" height="2" rx="1" fill="rgba(255,255,255,0.3)"/>
+
+        <!-- Slogan -->
+        <text x="110" y="71" font-family="Arial, sans-serif" font-size="8" font-weight="400" fill="rgba(255,255,255,0.6)" letter-spacing="1.5">PROFESYONEL SİTE YÖNETİMİ</text>
+
+        <!-- Yönetim -->
+        <text x="110" y="63" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#60a5fa">Yönetim</text>
+
+        <!-- Probis -->
+        <text x="110" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#ffffff">Probis</text>
+
+        <!-- Dijital aksan -->
+        <circle cx="102" cy="36" r="3" fill="#10b981"/>
+        <circle cx="108" cy="36" r="2" fill="#10b981" opacity="0.6"/>
+
+      </svg>
+    </div>
+    <div class="hero-badge">🏢 Profesyonel Site Yönetimi</div>
+    <h1>Sitenizi <span>Akıllıca</span> Yönetin</h1>
+    <p>Aidat takibi, sakin yönetimi, gider raporlama ve çok daha fazlası. ProbisYönetim ile site yönetimi artık çok kolay.</p>
+    <div class="hero-buttons">
+      <a href="#demo" class="btn-primary">🚀 Ücretsiz Demo Talep Et</a>
+      <a href="#ozellikler" class="btn-secondary">Özellikleri Keşfet →</a>
+      <a href="https://probissite.com.tr/login" class="btn-primary" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3)">🔐 Giriş Yap</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">360°</div>
+        <div class="hero-stat-label">Tam Kapsamlı Yönetim</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">7/24</div>
+        <div class="hero-stat-label">Erişim İmkânı</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">%100</div>
+        <div class="hero-stat-label">Web Tabanlı</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="ozellikler">
+  <div class="features-header">
+    <div class="section-label">Özellikler</div>
+    <h2 class="section-title">İhtiyacınız Olan Her Şey</h2>
+    <p class="section-sub">Site yönetiminin tüm süreçlerini tek platformda dijitalleştirin.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <h3>Aidat Takibi</h3>
+      <p>Aylık aidatları otomatik oluşturun, ödeme durumlarını anlık takip edin, gecikme faizlerini otomatik hesaplayın.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <h3>Sakin Yönetimi</h3>
+      <p>Mülk sahipleri ve kiracıları kolayca kaydedin, daire geçmişlerini görüntüleyin, sakinlerle mesajlaşın.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Gider Raporlama</h3>
+      <p>Tüm site giderlerini kategorilere göre kaydedin, aylık ve yıllık raporları kolayca oluşturun.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔔</div>
+      <h3>Otomatik Bildirimler</h3>
+      <p>Aidat vadesi yaklaşan sakinlere SMS ve e-posta ile otomatik hatırlatmalar gönderin.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏢</div>
+      <h3>Çoklu Site Yönetimi</h3>
+      <p>Birden fazla siteyi tek panelden yönetin. Her site için ayrı blok, daire ve sakin kayıtları.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📁</div>
+      <h3>Evrak Yönetimi</h3>
+      <p>Yönetim planı, kararlar, sözleşmeler gibi önemli evrakları dijital ortamda güvenle saklayın.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="nasil-calisir">
+  <div class="how-inner">
+    <div>
+      <div class="section-label">Nasıl Çalışır</div>
+      <h2 class="section-title">3 Adımda Başlayın</h2>
+      <p class="section-sub" style="margin-bottom:48px">Kurulum gerektirmez. Tarayıcınızdan hemen başlayın.</p>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-step-num">1</div>
+          <div class="how-step-content">
+            <h4>Demo Talep Edin</h4>
+            <p>Formu doldurun, size özel demo hesabı oluşturalım. 24 saat içinde geri dönüyoruz.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">2</div>
+          <div class="how-step-content">
+            <h4>Sitenizi Kaydedin</h4>
+            <p>Site bilgilerinizi, blokları, daireleri ve sakinleri sisteme kolayca ekleyin.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">3</div>
+          <div class="how-step-content">
+            <h4>Yönetmeye Başlayın</h4>
+            <p>Aidat oluşturun, giderleri kaydedin, sakinlerinizle iletişim kurun. Her şey tek ekranda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="how-visual">
+      <div class="how-visual-title">Örnek Site Özeti</div>
+      <div class="how-visual-stat">
+        <div class="how-visual-stat-label">Aidat Tahsilat Oranı</div>
+        <div class="how-visual-bar"><div class="how-visual-bar-fill" style="width:78%"></div></div>
+      </div>
+      <div class="how-visual-stat">
+        <div class="how-visual-stat-label">Aktif Sakin Oranı</div>
+        <div class="how-visual-bar"><div class="how-visual-bar-fill" style="width:92%"></div></div>
+      </div>
+      <div class="how-visual-stat">
+        <div class="how-visual-stat-label">Gider Takibi</div>
+        <div class="how-visual-bar"><div class="how-visual-bar-fill" style="width:100%"></div></div>
+      </div>
+      <div class="how-visual-nums">
+        <div class="how-visual-num">
+          <div class="how-visual-num-val">48</div>
+          <div class="how-visual-num-label">Toplam Daire</div>
+        </div>
+        <div class="how-visual-num">
+          <div class="how-visual-num-val">92</div>
+          <div class="how-visual-num-label">Aktif Sakin</div>
+        </div>
+        <div class="how-visual-num">
+          <div class="how-visual-num-val">37</div>
+          <div class="how-visual-num-label">Ödeme Bu Ay</div>
+        </div>
+        <div class="how-visual-num">
+          <div class="how-visual-num-val">11</div>
+          <div class="how-visual-num-label">Bekleyen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="demo" id="demo">
+  <div class="demo-content">
+    <div class="section-label">Demo Talebi</div>
+    <h2 class="section-title">Ücretsiz Demo İsteyin</h2>
+    <p class="section-sub">Sistemi canlı görmek ister misiniz? Hemen demo hesabınızı oluşturalım, hiçbir ücret ödemeden deneyin.</p>
+    <div class="demo-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Adınız Soyadınız</label>
+          <input type="text" id="demo-name" placeholder="Ahmet Yılmaz">
+        </div>
+        <div class="form-group">
+          <label>Telefon Numaranız</label>
+          <input type="tel" id="demo-phone" placeholder="05XX XXX XX XX">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>E-posta Adresiniz</label>
+          <input type="email" id="demo-email" placeholder="ornek@mail.com">
+        </div>
+        <div class="form-group">
+          <label>Site/Apartman Adı</label>
+          <input type="text" id="demo-site" placeholder="Örn: Yeşilbahçe Sitesi">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Daire Sayısı</label>
+        <select id="demo-count">
+          <option value="">Seçiniz...</option>
+          <option>1 - 20 Daire</option>
+          <option>21 - 50 Daire</option>
+          <option>51 - 100 Daire</option>
+          <option>100+ Daire</option>
+        </select>
+      </div>
+      <button class="form-submit" onclick="submitDemo()">🚀 Demo Talep Et</button>
+      <div class="success-msg" id="success-msg">
+        ✅ Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="iletisim">
+  <div class="contact-inner">
+    <div>
+      <div class="section-label">İletişim</div>
+      <h2 class="section-title">Bize Ulaşın</h2>
+      <p class="section-sub" style="margin-bottom:40px">Sorularınız için bizi arayabilir veya mail atabilirsiniz.</p>
+      <div class="contact-info">
+        <div class="contact-item">
+          <div class="contact-icon">📞</div>
+          <div class="contact-item-content">
+            <h4>Telefon</h4>
+            <a href="tel:+905435804646">+90 543 580 46 46</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📧</div>
+          <div class="contact-item-content">
+            <h4>E-posta</h4>
+            <a href="mailto:info@probissite.com.tr">info@probissite.com.tr</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🌐</div>
+          <div class="contact-item-content">
+            <h4>Website</h4>
+            <a href="https://probissite.com.tr">probissite.com.tr</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="contact-map">
+      <div class="contact-map-icon">📍</div>
+      <p>ProbisYönetim</p>
+      <p style="font-size:13px">Profesyonel Site Yönetimi</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <strong>ProbisYönetim</strong> — Tüm hakları saklıdır. | 
+  <a href="mailto:info@probissite.com.tr" style="color:#60a5fa;text-decoration:none">info@probissite.com.tr</a> | 
+  <a href="tel:+905435804646" style="color:#60a5fa;text-decoration:none">+90 543 580 46 46</a>
+  </p>
+</footer>
+
+<script>
+function submitDemo() {
+  const name = document.getElementById('demo-name').value.trim();
+  const phone = document.getElementById('demo-phone').value.trim();
+  const email = document.getElementById('demo-email').value.trim();
+
+  if (!name || !phone || !email) {
+    alert('Lütfen ad, telefon ve e-posta alanlarını doldurunuz.');
+    return;
+  }
+
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = '⏳ Gönderiliyor...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    document.getElementById('success-msg').style.display = 'block';
+    btn.textContent = '✅ Talebiniz Alındı';
+    document.getElementById('demo-name').value = '';
+    document.getElementById('demo-phone').value = '';
+    document.getElementById('demo-email').value = '';
+    document.getElementById('demo-site').value = '';
+    document.getElementById('demo-count').value = '';
+  }, 1000);
+}
+</script>
+
+</body>
+</html>

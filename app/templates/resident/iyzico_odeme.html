@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Güvenli Ödeme{% endblock %}
+{% block page_title %}Güvenli Ödeme{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <i class="fa-solid fa-lock text-green-500 text-xl"></i>
+            <div>
+                <p class="font-semibold text-gray-700">Güvenli Ödeme</p>
+                <p class="text-xs text-gray-400">256-bit SSL ile şifrelenmiş bağlantı</p>
+            </div>
+        </div>
+        {{ checkout_form_content | safe }}
+    </div>
+</div>
+{% endblock %}

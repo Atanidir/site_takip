@@ -12,6 +12,36 @@
                 <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">1</span>
                 Gider Dönemini Seçin
             </h3>
+
+            {% if site.donem_baslangic_gun and site.donem_bitis_gun %}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-blue-800">
+                        <i class="fa-solid fa-calendar-days mr-1"></i>
+                        Site aidat dönemi: Her ayın <strong>{{ site.donem_baslangic_gun }}'i</strong> — 
+                        Sonraki ayın <strong>{{ site.donem_bitis_gun }}'ine</strong> kadar
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="otomatik_ay" class="px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none">
+                        {% set months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+                        {% for i in range(1, 13) %}
+                        <option value="{{ i }}" {{ 'selected' if i == month }}>{{ months[i-1] }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="otomatik_yil" class="px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none">
+                        {% for y in range(2023, 2028) %}
+                        <option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" onclick="otomatikDoldur()"
+                            class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700">
+                        <i class="fa-solid fa-magic mr-1"></i> Otomatik Doldur
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
@@ -169,6 +199,30 @@
 {% block extra_js %}
 <script>
 const SITE_ID = {{ site.id }};
+const DONEM_BASLANGIC = {{ site.donem_baslangic_gun or 1 }};
+const DONEM_BITIS = {{ site.donem_bitis_gun or 1 }};
+
+function otomatikDoldur() {
+    const ay   = parseInt(document.getElementById('otomatik_ay').value);
+    const yil  = parseInt(document.getElementById('otomatik_yil').value);
+
+    // Başlangıç: seçilen ayın başlangıç günü
+    const baslangic = new Date(yil, ay - 1, DONEM_BASLANGIC);
+
+    // Bitiş: bir sonraki ayın bitiş günü
+    let bitis_ay  = ay;
+    let bitis_yil = yil;
+    if (ay === 12) { bitis_ay = 1; bitis_yil = yil + 1; }
+    else { bitis_ay = ay + 1; }
+    const bitis = new Date(bitis_yil, bitis_ay - 1, DONEM_BITIS);
+
+    document.getElementById('start_date').value = baslangic.toISOString().split('T')[0];
+    document.getElementById('end_date').value   = bitis.toISOString().split('T')[0];
+
+    // Aidat yılı ve ayını da güncelle
+    document.getElementById('f_year').value  = yil;
+    document.getElementById('f_month').value = ay;
+}
 
 async function hesapla() {
     const start = document.getElementById('start_date').value;

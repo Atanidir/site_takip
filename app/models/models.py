@@ -3,10 +3,6 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
-# ─────────────────────────────────────────
-# KULLANICI & LİSANS
-# ─────────────────────────────────────────
-
 class License(db.Model):
     __tablename__ = 'licenses'
     id            = db.Column(db.Integer, primary_key=True)
@@ -55,7 +51,6 @@ class User(UserMixin, db.Model):
     full_name     = db.Column(db.String(128))
     phone         = db.Column(db.String(20))
     role          = db.Column(db.String(20), nullable=False)
-    # roller: super_admin | site_admin | resident
     is_active     = db.Column(db.Boolean, default=True)
     license_id    = db.Column(db.Integer, db.ForeignKey('licenses.id'), nullable=True)
     must_change_pw= db.Column(db.Boolean, default=False)
@@ -63,8 +58,6 @@ class User(UserMixin, db.Model):
     reset_token_exp= db.Column(db.DateTime, nullable=True)
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # site_admin ise hangi siteleri yönetiyor (managed_sites backref ile erişilir)
-    # resident ise hangi dairelerde oturdu
     residencies   = db.relationship('Resident', backref='user', lazy='dynamic',
                                     foreign_keys='Resident.user_id')
 
@@ -87,11 +80,6 @@ class User(UserMixin, db.Model):
         return f'<User {self.username} [{self.role}]>'
 
 
-# ─────────────────────────────────────────
-# SİTE / BLOK / DAİRE
-# ─────────────────────────────────────────
-
-# Site ↔ User çoka-çok ara tablosu
 site_admins_table = db.Table('site_admins',
     db.Column('site_id', db.Integer, db.ForeignKey('sites.id'), primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True)
@@ -108,12 +96,14 @@ class Site(db.Model):
     address         = db.Column(db.Text)
     uavt_code       = db.Column(db.String(20))
     is_active       = db.Column(db.Boolean, default=True)
-    gecikme_turu    = db.Column(db.String(10), default='gunluk')  # gunluk | aylik
-    gecikme_oran    = db.Column(db.Numeric(5, 2), default=0)      # % oran
-    iban            = db.Column(db.String(32))
-    banka_adi       = db.Column(db.String(64))
-    hesap_sahibi    = db.Column(db.String(128))
-    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    gecikme_turu    = db.Column(db.String(10), default='gunluk')
+    gecikme_oran    = db.Column(db.Numeric(5, 2), default=0)
+    iban                 = db.Column(db.String(32))
+    banka_adi            = db.Column(db.String(64))
+    hesap_sahibi         = db.Column(db.String(128))
+    donem_baslangic_gun  = db.Column(db.Integer, default=1)
+    donem_bitis_gun      = db.Column(db.Integer, default=1)
+    created_at           = db.Column(db.DateTime, default=datetime.utcnow)
 
     blocks   = db.relationship('Block', backref='site', lazy='dynamic',
                                cascade='all, delete-orphan')
@@ -157,8 +147,8 @@ class Apartment(db.Model):
     uavt_code       = db.Column(db.String(20))
     number_type     = db.Column(db.String(12), default='numeric')
     number_length   = db.Column(db.Integer, default=3)
-    aidat_muaf      = db.Column(db.Boolean, default=False)  # Aidat hesabından muaf
-    muaf_aciklama   = db.Column(db.String(128))             # Muafiyet açıklaması
+    aidat_muaf      = db.Column(db.Boolean, default=False)
+    muaf_aciklama   = db.Column(db.String(128))
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
 
     residents = db.relationship('Resident', backref='apartment', lazy='dynamic',
@@ -169,16 +159,11 @@ class Apartment(db.Model):
         return f'<Apartment {self.number}>'
 
 
-# ─────────────────────────────────────────
-# SAKİN (DAİRE HAREKETLERİ)
-# ─────────────────────────────────────────
-
 class Resident(db.Model):
     __tablename__ = 'residents'
     id              = db.Column(db.Integer, primary_key=True)
     apartment_id    = db.Column(db.Integer, db.ForeignKey('apartments.id'), nullable=False)
     user_id         = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    # kullanıcı sisteme kayıtlı değilse bile sakin kaydı açılabilir
     first_name      = db.Column(db.String(64), nullable=False)
     last_name       = db.Column(db.String(64), nullable=False)
     tc_no           = db.Column(db.String(11))
@@ -186,7 +171,6 @@ class Resident(db.Model):
     phone           = db.Column(db.String(20))
     email           = db.Column(db.String(120))
     resident_type   = db.Column(db.String(20), nullable=False)
-    # resident_type: owner (Mülk Sahibi) | tenant (Kiracı)
     move_in_date    = db.Column(db.Date)
     move_out_date   = db.Column(db.Date, nullable=True)
     is_active       = db.Column(db.Boolean, default=True)
@@ -199,10 +183,6 @@ class Resident(db.Model):
     def __repr__(self):
         return f'<Resident {self.first_name} {self.last_name}>'
 
-
-# ─────────────────────────────────────────
-# GİDER KATEGORİ / TÜR / KAYIT
-# ─────────────────────────────────────────
 
 class ExpenseCategory(db.Model):
     __tablename__ = 'expense_categories'
@@ -223,7 +203,7 @@ class ExpenseType(db.Model):
     __tablename__ = 'expense_types'
     id          = db.Column(db.Integer, primary_key=True)
     category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'), nullable=False)
-    name        = db.Column(db.String(64), nullable=False)  # Asansör, Elektrik, Kapıcı
+    name        = db.Column(db.String(64), nullable=False)
     description = db.Column(db.String(255))
 
     expenses    = db.relationship('Expense', backref='expense_type', lazy='dynamic')
@@ -245,6 +225,7 @@ class Expense(db.Model):
     period_year   = db.Column(db.Integer, nullable=False)
     period_month  = db.Column(db.Integer, nullable=False)
     receipt_no    = db.Column(db.String(64))
+    is_recurring  = db.Column(db.Boolean, default=False)
     created_by    = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -255,31 +236,27 @@ class Expense(db.Model):
         return f'<Expense {self.amount} [{self.expense_date}]>'
 
 
-# ─────────────────────────────────────────
-# AİDAT
-# ─────────────────────────────────────────
-
 class Due(db.Model):
     __tablename__ = 'dues'
     id              = db.Column(db.Integer, primary_key=True)
     apartment_id    = db.Column(db.Integer, db.ForeignKey('apartments.id'), nullable=False)
     resident_id     = db.Column(db.Integer, db.ForeignKey('residents.id'), nullable=True)
-    period_start    = db.Column(db.Date, nullable=True)   # gider başlangıç tarihi
-    period_end      = db.Column(db.Date, nullable=True)   # gider bitiş tarihi
+    period_start    = db.Column(db.Date, nullable=True)
+    period_end      = db.Column(db.Date, nullable=True)
     period_year     = db.Column(db.Integer, nullable=False)
     period_month    = db.Column(db.Integer, nullable=False)
     amount          = db.Column(db.Numeric(12, 2), nullable=False)
-    demirbas_amount = db.Column(db.Numeric(12, 2), default=0)  # demirbaş payı
-    normal_amount   = db.Column(db.Numeric(12, 2), default=0)  # normal gider payı
-    yakit_amount    = db.Column(db.Numeric(12, 2), default=0)  # yakıt payı
-    due_date        = db.Column(db.Date, nullable=True)    # vade tarihi
-    yakit_due_date  = db.Column(db.Date, nullable=True)    # yakıt vade tarihi
+    demirbas_amount = db.Column(db.Numeric(12, 2), default=0)
+    normal_amount   = db.Column(db.Numeric(12, 2), default=0)
+    yakit_amount    = db.Column(db.Numeric(12, 2), default=0)
+    due_date        = db.Column(db.Date, nullable=True)
+    yakit_due_date  = db.Column(db.Date, nullable=True)
     is_paid         = db.Column(db.Boolean, default=False)
     paid_date       = db.Column(db.Date, nullable=True)
     payment_note    = db.Column(db.String(255))
-    gecikme_gun     = db.Column(db.Integer, default=0)       # gecikme gün sayısı
-    gecikme_bedel   = db.Column(db.Numeric(12,2), default=0) # gecikme bedeli
-    due_type        = db.Column(db.String(20), default='normal')  # normal | yakit
+    gecikme_gun     = db.Column(db.Integer, default=0)
+    gecikme_bedel   = db.Column(db.Numeric(12,2), default=0)
+    due_type        = db.Column(db.String(20), default='normal')
     created_by      = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -290,16 +267,11 @@ class Due(db.Model):
         return f'<Due {self.period_year}/{self.period_month} apt:{self.apartment_id}>'
 
 
-# ─────────────────────────────────────────
-# SİSTEM AYARLARI
-# ─────────────────────────────────────────
-
 class SystemSettings(db.Model):
     __tablename__ = 'system_settings'
     id              = db.Column(db.Integer, primary_key=True)
-    scope           = db.Column(db.String(20), default='global')  # global | site
+    scope           = db.Column(db.String(20), default='global')
     site_id         = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=True)
-    # Mail
     smtp_host       = db.Column(db.String(128))
     smtp_port       = db.Column(db.Integer, default=587)
     smtp_user       = db.Column(db.String(128))
@@ -307,25 +279,29 @@ class SystemSettings(db.Model):
     smtp_from_name  = db.Column(db.String(64))
     smtp_from_email = db.Column(db.String(128))
     smtp_use_tls    = db.Column(db.Boolean, default=True)
-    # SMS (Netgsm veya VatanSMS)
-    sms_provider    = db.Column(db.String(20), default='vatansms')  # netgsm | vatansms
+    sms_provider    = db.Column(db.String(20), default='vatansms')
     netgsm_user     = db.Column(db.String(64))
     netgsm_pass     = db.Column(db.String(128))
     netgsm_header   = db.Column(db.String(20))
     vatansms_api_id = db.Column(db.String(20))
     vatansms_api_key= db.Column(db.String(64))
-    # Durum
     mail_active     = db.Column(db.Boolean, default=False)
-    sms_active      = db.Column(db.Boolean, default=False)
+    sms_active           = db.Column(db.Boolean, default=False)
+    odeme_saglayici      = db.Column(db.String(20), default=None)
+    odeme_active         = db.Column(db.Boolean, default=False)
+    iyzico_api_key       = db.Column(db.String(128))
+    iyzico_secret_key    = db.Column(db.String(128))
+    iyzico_base_url      = db.Column(db.String(128))
+    paytr_merchant_id    = db.Column(db.String(64))
+    paytr_merchant_key   = db.Column(db.String(128))
+    paytr_merchant_salt  = db.Column(db.String(128))
+    stripe_public_key    = db.Column(db.String(128))
+    stripe_secret_key    = db.Column(db.String(128))
     updated_at      = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
         return f'<SystemSettings {self.scope}>'
 
-
-# ─────────────────────────────────────────
-# BİLDİRİMLER
-# ─────────────────────────────────────────
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
@@ -335,7 +311,7 @@ class Notification(db.Model):
     message     = db.Column(db.Text)
     link        = db.Column(db.String(256))
     is_read     = db.Column(db.Boolean, default=False)
-    notif_type  = db.Column(db.String(30), default='info')  # info | warning | danger
+    notif_type  = db.Column(db.String(30), default='info')
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', foreign_keys=[user_id])
@@ -343,10 +319,6 @@ class Notification(db.Model):
     def __repr__(self):
         return f'<Notification {self.title}>'
 
-
-# ─────────────────────────────────────────
-# SİTE EVRAKLARI
-# ─────────────────────────────────────────
 
 class SiteDocument(db.Model):
     __tablename__ = 'site_documents'
@@ -363,10 +335,6 @@ class SiteDocument(db.Model):
     site     = db.relationship('Site', foreign_keys=[site_id])
     uploader = db.relationship('User', foreign_keys=[uploaded_by])
 
-
-# ─────────────────────────────────────────
-# SAKİN MESAJLARI
-# ─────────────────────────────────────────
 
 class ResidentMessage(db.Model):
     __tablename__ = 'resident_messages'
@@ -388,10 +356,6 @@ class ResidentMessage(db.Model):
     sender   = db.relationship('User', foreign_keys=[sender_id])
 
 
-# ─────────────────────────────────────────
-# YÖNETİCİ EVRAKLARI VE MESAJLARI
-# ─────────────────────────────────────────
-
 class AdminDocument(db.Model):
     __tablename__ = 'admin_documents'
     id              = db.Column(db.Integer, primary_key=True)
@@ -412,13 +376,46 @@ class AdminDocument(db.Model):
 
 class AdminMessage(db.Model):
     __tablename__ = 'admin_messages'
-    id         = db.Column(db.Integer, primary_key=True)
-    site_id    = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=False)
-    sender_id  = db.Column(db.Integer, db.ForeignKey('users.id'))
-    title      = db.Column(db.String(256), nullable=False)
-    message    = db.Column(db.Text, nullable=False)
-    is_read    = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id               = db.Column(db.Integer, primary_key=True)
+    site_id          = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=False)
+    sender_id        = db.Column(db.Integer, db.ForeignKey('users.id'))
+    title            = db.Column(db.String(256), nullable=False)
+    message          = db.Column(db.Text, nullable=False)
+    is_read          = db.Column(db.Boolean, default=False)
+    super_admin_read = db.Column(db.Boolean, default=False)
+    reply            = db.Column(db.Text, nullable=True)
+    reply_at         = db.Column(db.DateTime, nullable=True)
+    reply_read       = db.Column(db.Boolean, default=False)
+    is_closed        = db.Column(db.Boolean, default=False)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
 
     site   = db.relationship('Site', foreign_keys=[site_id])
     sender = db.relationship('User', foreign_keys=[sender_id])
+
+# ─────────────────────────────────────────
+# DUYURULAR
+# ─────────────────────────────────────────
+
+class Announcement(db.Model):
+    __tablename__ = 'announcements'
+    id           = db.Column(db.Integer, primary_key=True)
+    site_id      = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=False)
+    title        = db.Column(db.String(256), nullable=False)
+    content      = db.Column(db.Text, nullable=False)
+    publish_at   = db.Column(db.DateTime, nullable=False)
+    is_published = db.Column(db.Boolean, default=False)
+    send_sms     = db.Column(db.Boolean, default=False)
+    send_mail    = db.Column(db.Boolean, default=False)
+    sms_sent     = db.Column(db.Boolean, default=False)
+    mail_sent    = db.Column(db.Boolean, default=False)
+    created_by   = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    site    = db.relationship('Site', foreign_keys=[site_id])
+    creator = db.relationship('User', foreign_keys=[created_by])
+
+    def __repr__(self):
+        return f'<Announcement {self.title}>'
+
+    def __repr__(self):
+        return f'<Announcement {self.title}>'

@@ -22,6 +22,13 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
+
+
+
+
+
+
+
 {% if current_user.is_authenticated %}
 
 <!-- Mobile overlay -->
@@ -94,7 +101,13 @@
                 {% if current_user.role == 'site_admin' %}
                 {% set unread = namespace(count=0) %}
                 {% set notifs = [] %}
-                {% if current_user.is_authenticated %}
+                
+
+
+
+
+
+{% if current_user.is_authenticated %}
                     {% set notifs = current_user | get_notifications %}
                 {% endif %}
                 <div class="relative">

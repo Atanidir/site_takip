@@ -116,21 +116,33 @@
             </div>
 
             <div id="vatansmsForm" class="{{ '' if not cfg or cfg.sms_provider == 'vatansms' else 'hidden' }}">
-                <div class="grid grid-cols-3 gap-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                    <p class="text-xs text-blue-700"><i class="fa-solid fa-circle-info mr-1"></i>
+                    VatanSMS panelinde <strong>Hesabım → API Bilgilerimi Görüntüle</strong> kısmından API ID ve API Key bilgilerinize ulaşabilirsiniz.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">VatanSMS Kullanıcı ID</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Müşteri No (API ID)</label>
                         <input type="text" name="vatansms_api_id" value="{{ cfg.vatansms_api_id or '' if cfg else '' }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                placeholder="Örn: 43787">
+                        <p class="text-xs text-gray-400 mt-1">VatanSMS müşteri numaranız.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">VatanSMS Kullanıcı Adı</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı Adı</label>
                         <input type="text" name="vatansms_api_key" value="{{ cfg.vatansms_api_key or '' if cfg else '' }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                placeholder="Örn: 905334600333">
+                        <p class="text-xs text-gray-400 mt-1">VatanSMS kullanıcı adınız.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Mesaj Başlığı</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+                        <input type="password" name="netgsm_pass" placeholder="{{ '••••••••' if cfg and cfg.netgsm_pass else 'Şifrenizi giriniz' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">Boş bırakırsanız mevcut şifre korunur.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mesaj Başlığı (Gönderici)</label>
                         <input type="text" name="netgsm_header" value="{{ cfg.netgsm_header or '' if cfg else '' }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                placeholder="Örn: SITEADI" maxlength="11">

@@ -89,6 +89,36 @@
                 </div>
             </div>
 
+            <!-- Aidat Dönemi -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-blue-800 mb-3">
+                    <i class="fa-solid fa-calendar-days mr-1"></i> Aidat Dönemi Ayarları
+                </h4>
+                <p class="text-xs text-blue-600 mb-3">Aidat döneminin hangi günler arasında olduğunu belirleyin. Örn: Her ayın 15'inden bir sonraki ayın 15'ine kadar.</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dönem Başlangıç Günü</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-500">Her ayın</span>
+                            <input type="number" name="donem_baslangic_gun" min="1" max="31"
+                                   value="{{ site.donem_baslangic_gun if site else 1 }}"
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span class="text-sm text-gray-500">'i</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dönem Bitiş Günü</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-500">Sonraki ayın</span>
+                            <input type="number" name="donem_bitis_gun" min="1" max="31"
+                                   value="{{ site.donem_bitis_gun if site else 1 }}"
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span class="text-sm text-gray-500">'ine kadar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {% if not site %}
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <label class="block text-sm font-semibold text-blue-800 mb-2">

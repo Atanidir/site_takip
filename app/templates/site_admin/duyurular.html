@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Duyurular{% endblock %}
+{% block page_title %}Duyuru Yönetimi{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+
+    <div class="flex items-center justify-between mb-5">
+        <p class="text-sm text-gray-500">Zamanlanmış ve yayınlanmış duyurularınız</p>
+        <a href="{{ url_for('site_admin.yeni_duyuru') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+            <i class="fa-solid fa-plus mr-1"></i> Yeni Duyuru
+        </a>
+    </div>
+
+    {% if not duyurular %}
+    <div class="bg-white rounded-xl border border-gray-100 p-10 text-center">
+        <i class="fa-solid fa-bullhorn text-gray-300 text-4xl mb-3"></i>
+        <p class="text-gray-400">Henüz duyuru oluşturulmamış.</p>
+    </div>
+    {% else %}
+    <div class="space-y-4">
+        {% for d in duyurular %}
+        {% set gecti = d.publish_at <= now %}
+        <div class="bg-white rounded-xl shadow-sm border {{ 'border-green-200' if d.is_published else ('border-blue-200' if not gecti else 'border-orange-200') }} p-5">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        {% if d.is_published %}
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">✓ Yayınlandı</span>
+                        {% elif not gecti %}
+                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">⏰ Zamanlandı</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">⚠ Bekliyor</span>
+                        {% endif %}
+                        {% if d.send_sms %}<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">SMS</span>{% endif %}
+                        {% if d.send_mail %}<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">Mail</span>{% endif %}
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-1">{{ d.title }}</h3>
+                    <p class="text-sm text-gray-500 mb-2">{{ d.content[:120] }}{% if d.content|length > 120 %}...{% endif %}</p>
+                    <p class="text-xs text-gray-400">
+                        <i class="fa-solid fa-clock mr-1"></i>
+                        Yayın: {{ d.publish_at.strftime('%d.%m.%Y %H:%M') }}
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    {% if not d.is_published %}
+                    <form method="POST" action="{{ url_for('site_admin.duyuru_hemen_yayinla', did=d.id) }}">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
+                            <i class="fa-solid fa-bolt mr-1"></i> Hemen Yayınla
+                        </button>
+                    </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('site_admin.duyuru_sil', did=d.id) }}"
+                          onsubmit="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?')">
+                        <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs px-3 py-1.5 rounded-lg border border-red-200 transition-colors">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

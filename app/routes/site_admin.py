@@ -89,11 +89,13 @@ def site_setup():
             site.neighborhood = request.form.get('neighborhood')
             site.address      = request.form.get('address')
             site.uavt_code    = request.form.get('uavt_code')
-            site.gecikme_turu = request.form.get('gecikme_turu', 'gunluk')
-            site.gecikme_oran = float(request.form.get('gecikme_oran', 0))
-            site.iban         = request.form.get('iban', '').replace(' ', '')
-            site.banka_adi    = request.form.get('banka_adi')
-            site.hesap_sahibi = request.form.get('hesap_sahibi')
+            site.gecikme_turu        = request.form.get('gecikme_turu', 'gunluk')
+            site.gecikme_oran        = float(request.form.get('gecikme_oran', 0))
+            site.iban                = request.form.get('iban', '').replace(' ', '')
+            site.banka_adi           = request.form.get('banka_adi')
+            site.hesap_sahibi        = request.form.get('hesap_sahibi')
+            site.donem_baslangic_gun = int(request.form.get('donem_baslangic_gun', 1))
+            site.donem_bitis_gun     = int(request.form.get('donem_bitis_gun', 1))
         else:
             site = Site(
                 name=request.form.get('name'), province=request.form.get('province'),
@@ -104,6 +106,8 @@ def site_setup():
                 iban=request.form.get('iban', '').replace(' ', ''),
                 banka_adi=request.form.get('banka_adi'),
                 hesap_sahibi=request.form.get('hesap_sahibi'),
+                donem_baslangic_gun=int(request.form.get('donem_baslangic_gun', 1)),
+                donem_bitis_gun=int(request.form.get('donem_bitis_gun', 1)),
             )
             site.managers.append(current_user)
             db.session.add(site)
@@ -316,6 +320,8 @@ def new_apartment(bid):
             number_length=int(request.form.get('number_length',3)),
             uavt_code=request.form.get('uavt_code'),
             aidat_muaf=bool(request.form.get('aidat_muaf')),
+            demirbas_muaf=bool(request.form.get('demirbas_muaf')),
+            yakit_muaf=bool(request.form.get('yakit_muaf')),
             muaf_aciklama=request.form.get('muaf_aciklama')
         ))
         db.session.commit()
@@ -338,6 +344,8 @@ def edit_apartment(aid):
         apt.number_length = int(request.form.get('number_length',3))
         apt.uavt_code     = request.form.get('uavt_code')
         apt.aidat_muaf    = bool(request.form.get('aidat_muaf'))
+        apt.demirbas_muaf = bool(request.form.get('demirbas_muaf'))
+        apt.yakit_muaf    = bool(request.form.get('yakit_muaf'))
         apt.muaf_aciklama = request.form.get('muaf_aciklama')
         db.session.commit()
         flash('Daire güncellendi.', 'success')
@@ -585,7 +593,9 @@ def new_expense():
             expense_date=_parse_date(request.form.get('expense_date')),
             period_year=int(request.form.get('period_year')),
             period_month=int(request.form.get('period_month')),
-            receipt_no=request.form.get('receipt_no'), created_by=current_user.id
+            receipt_no=request.form.get('receipt_no'),
+            is_recurring=bool(request.form.get('is_recurring')),
+            created_by=current_user.id
         ))
         db.session.commit()
         flash('Gider kaydedildi.', 'success')
@@ -697,8 +707,13 @@ def generate_dues():
 
         count = 0
         for apt in tum_daireler:
-            # Muaf daireleri atla
-            if apt.aidat_muaf:
+            # Muafiyet kontrolleri
+            normal_muaf   = apt.aidat_muaf
+            demirbas_muaf = apt.demirbas_muaf
+            yakit_muaf    = apt.yakit_muaf
+
+            # Tüm muafiyetler varsa atla
+            if normal_muaf and demirbas_muaf and yakit_muaf:
                 continue
 
             # Mevcut aidat varsa atla
@@ -710,79 +725,86 @@ def generate_dues():
             kiraci = Resident.query.filter_by(apartment_id=apt.id, is_active=True, resident_type='tenant').first()
             sahip  = Resident.query.filter_by(apartment_id=apt.id, resident_type='owner').order_by(Resident.move_in_date.desc()).first()
 
+            # Muafiyete göre tutarları ayarla
+            apt_demirbas = 0 if demirbas_muaf else daire_demirbas
+            apt_normal   = 0 if normal_muaf else daire_normal
+            apt_yakit    = 0 if yakit_muaf else daire_yakit
+
             if aktif_sakin is None:
-                # Boş daire - demirbaş + normal mülk sahibine
-                db.session.add(Due(
-                    apartment_id=apt.id, resident_id=sahip.id if sahip else None,
-                    period_year=year, period_month=month,
-                    period_start=start_date, period_end=end_date,
-                    amount=daire_demirbas + daire_normal,
-                    demirbas_amount=daire_demirbas, normal_amount=daire_normal,
-                    yakit_amount=0, due_type='normal',
-                    due_date=due_date, is_paid=False, created_by=current_user.id
-                ))
-                # Yakıt varsa boş daireye de ekle (mülk sahibine)
-                if daire_yakit > 0:
+                # Boş daire
+                if apt_demirbas + apt_normal > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=sahip.id if sahip else None,
                         period_year=year, period_month=month,
                         period_start=start_date, period_end=end_date,
-                        amount=daire_yakit, demirbas_amount=0, normal_amount=0,
-                        yakit_amount=daire_yakit, due_type='yakit',
+                        amount=apt_demirbas + apt_normal,
+                        demirbas_amount=apt_demirbas, normal_amount=apt_normal,
+                        yakit_amount=0, due_type='normal',
+                        due_date=due_date, is_paid=False, created_by=current_user.id
+                    ))
+                if apt_yakit > 0:
+                    db.session.add(Due(
+                        apartment_id=apt.id, resident_id=sahip.id if sahip else None,
+                        period_year=year, period_month=month,
+                        period_start=start_date, period_end=end_date,
+                        amount=apt_yakit, demirbas_amount=0, normal_amount=0,
+                        yakit_amount=apt_yakit, due_type='yakit',
                         due_date=yakit_due_date, is_paid=False, created_by=current_user.id
                     ))
                 count += 1
 
             elif kiraci:
                 # Kiracıya → normal pay
-                db.session.add(Due(
-                    apartment_id=apt.id, resident_id=kiraci.id,
-                    period_year=year, period_month=month,
-                    period_start=start_date, period_end=end_date,
-                    amount=daire_normal, demirbas_amount=0, normal_amount=daire_normal,
-                    yakit_amount=0, due_type='normal',
-                    due_date=due_date, is_paid=False, created_by=current_user.id
-                ))
-                # Kiracıya yakıt
-                if daire_yakit > 0:
+                if apt_normal > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=kiraci.id,
                         period_year=year, period_month=month,
                         period_start=start_date, period_end=end_date,
-                        amount=daire_yakit, demirbas_amount=0, normal_amount=0,
-                        yakit_amount=daire_yakit, due_type='yakit',
+                        amount=apt_normal, demirbas_amount=0, normal_amount=apt_normal,
+                        yakit_amount=0, due_type='normal',
+                        due_date=due_date, is_paid=False, created_by=current_user.id
+                    ))
+                # Kiracıya yakıt
+                if apt_yakit > 0:
+                    db.session.add(Due(
+                        apartment_id=apt.id, resident_id=kiraci.id,
+                        period_year=year, period_month=month,
+                        period_start=start_date, period_end=end_date,
+                        amount=apt_yakit, demirbas_amount=0, normal_amount=0,
+                        yakit_amount=apt_yakit, due_type='yakit',
                         due_date=yakit_due_date, is_paid=False, created_by=current_user.id
                     ))
                 # Mülk sahibine → demirbaş pay
-                db.session.add(Due(
-                    apartment_id=apt.id, resident_id=sahip.id if sahip else None,
-                    period_year=year, period_month=month,
-                    period_start=start_date, period_end=end_date,
-                    amount=daire_demirbas, demirbas_amount=daire_demirbas, normal_amount=0,
-                    yakit_amount=0, due_type='normal',
-                    due_date=due_date, is_paid=False, created_by=current_user.id
-                ))
+                if apt_demirbas > 0:
+                    db.session.add(Due(
+                        apartment_id=apt.id, resident_id=sahip.id if sahip else None,
+                        period_year=year, period_month=month,
+                        period_start=start_date, period_end=end_date,
+                        amount=apt_demirbas, demirbas_amount=apt_demirbas, normal_amount=0,
+                        yakit_amount=0, due_type='normal',
+                        due_date=due_date, is_paid=False, created_by=current_user.id
+                    ))
                 count += 2
 
             else:
-                # Mülk sahibi oturuyor → demirbaş + normal
-                db.session.add(Due(
-                    apartment_id=apt.id, resident_id=aktif_sakin.id,
-                    period_year=year, period_month=month,
-                    period_start=start_date, period_end=end_date,
-                    amount=daire_demirbas + daire_normal,
-                    demirbas_amount=daire_demirbas, normal_amount=daire_normal,
-                    yakit_amount=0, due_type='normal',
-                    due_date=due_date, is_paid=False, created_by=current_user.id
-                ))
-                # Yakıt
-                if daire_yakit > 0:
+                # Mülk sahibi oturuyor
+                if apt_demirbas + apt_normal > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=aktif_sakin.id,
                         period_year=year, period_month=month,
                         period_start=start_date, period_end=end_date,
-                        amount=daire_yakit, demirbas_amount=0, normal_amount=0,
-                        yakit_amount=daire_yakit, due_type='yakit',
+                        amount=apt_demirbas + apt_normal,
+                        demirbas_amount=apt_demirbas, normal_amount=apt_normal,
+                        yakit_amount=0, due_type='normal',
+                        due_date=due_date, is_paid=False, created_by=current_user.id
+                    ))
+                if apt_yakit > 0:
+                    db.session.add(Due(
+                        apartment_id=apt.id, resident_id=aktif_sakin.id,
+                        period_year=year, period_month=month,
+                        period_start=start_date, period_end=end_date,
+                        amount=apt_yakit, demirbas_amount=0, normal_amount=0,
+                        yakit_amount=apt_yakit, due_type='yakit',
                         due_date=yakit_due_date, is_paid=False, created_by=current_user.id
                     ))
                 count += 1
@@ -983,6 +1005,7 @@ def edit_expense(eid):
         exp.period_year  = int(request.form.get('period_year'))
         exp.period_month = int(request.form.get('period_month'))
         exp.receipt_no   = request.form.get('receipt_no')
+        exp.is_recurring = bool(request.form.get('is_recurring'))
         db.session.commit()
         flash('Gider güncellendi.', 'success')
         return redirect(url_for('site_admin.expenses'))
@@ -1203,6 +1226,22 @@ def settings():
         cfg.vatansms_api_key = request.form.get('vatansms_api_key')
         if request.form.get('netgsm_pass'):
             cfg.netgsm_pass = request.form.get('netgsm_pass')
+
+        # Ödeme
+        cfg.odeme_active        = bool(request.form.get('odeme_active'))
+        cfg.odeme_saglayici     = request.form.get('odeme_saglayici')
+        cfg.iyzico_api_key      = request.form.get('iyzico_api_key') or cfg.iyzico_api_key
+        cfg.iyzico_base_url     = request.form.get('iyzico_base_url')
+        cfg.paytr_merchant_id   = request.form.get('paytr_merchant_id') or cfg.paytr_merchant_id
+        cfg.stripe_public_key   = request.form.get('stripe_public_key') or cfg.stripe_public_key
+        if request.form.get('iyzico_secret_key'):
+            cfg.iyzico_secret_key = request.form.get('iyzico_secret_key')
+        if request.form.get('paytr_merchant_key'):
+            cfg.paytr_merchant_key = request.form.get('paytr_merchant_key')
+        if request.form.get('paytr_merchant_salt'):
+            cfg.paytr_merchant_salt = request.form.get('paytr_merchant_salt')
+        if request.form.get('stripe_secret_key'):
+            cfg.stripe_secret_key = request.form.get('stripe_secret_key')
 
         db.session.commit()
         flash('Ayarlar kaydedildi.', 'success')
@@ -1804,3 +1843,187 @@ def yonetici_evrak_indir(doc_id):
     upload_dir = os.path.join('/home/probissi/site_takip/uploads/admin', str(doc.target_user_id))
     return send_from_directory(upload_dir, doc.filename,
                                as_attachment=True, download_name=doc.original_name)
+
+
+# ── Context Processor ─────────────────────────────────────────────────────
+@site_admin_bp.context_processor
+def inject_unread_admin_reply():
+    from flask_login import current_user
+    from app.models.models import AdminMessage
+    count = 0
+    try:
+        if current_user.is_authenticated and current_user.role == 'site_admin':
+            count = AdminMessage.query.filter_by(
+                sender_id=current_user.id,
+                reply_read=False
+            ).filter(AdminMessage.reply != None).count()
+    except Exception:
+        pass
+    return dict(site_admin_unread_reply=count)
+
+
+# ── Sakin Mesajları Toplu Sil ─────────────────────────────────────────────
+@site_admin_bp.route('/sakin-mesajlari/toplu-sil', methods=['POST'])
+@login_required
+@site_admin_required
+def sakin_mesaj_toplu_sil():
+    from app.models.models import ResidentMessage
+    site = get_active_site()
+    if site:
+        ResidentMessage.query.filter_by(
+            site_id=site.id, is_closed=True
+        ).delete()
+        db.session.commit()
+        flash('Kapatılmış mesajlar silindi.', 'success')
+    return redirect(url_for('site_admin.sakin_mesajlari', durum='kapali'))
+
+
+# ── Tekrar Eden Giderleri Bu Aya Ekle ────────────────────────────────────
+@site_admin_bp.route('/expenses/tekrar-eden-ekle', methods=['POST'])
+@login_required
+@site_admin_required
+def tekrar_eden_ekle():
+    site  = get_active_site()
+    year  = int(request.form.get('year'))
+    month = int(request.form.get('month'))
+
+    if month == 1:
+        prev_year, prev_month = year - 1, 12
+    else:
+        prev_year, prev_month = year, month - 1
+
+    gecen_ay_tekrar = Expense.query.filter_by(
+        site_id=site.id, period_year=prev_year,
+        period_month=prev_month, is_recurring=True
+    ).all()
+
+    bu_ay_type_ids = {e.type_id for e in Expense.query.filter_by(
+        site_id=site.id, period_year=year, period_month=month
+    ).all()}
+
+    count = 0
+    for exp in gecen_ay_tekrar:
+        if exp.type_id not in bu_ay_type_ids:
+            db.session.add(Expense(
+                site_id      = exp.site_id,
+                block_id     = exp.block_id,
+                category_id  = exp.category_id,
+                type_id      = exp.type_id,
+                amount       = exp.amount,
+                description  = exp.description,
+                expense_date = date.today(),
+                period_year  = year,
+                period_month = month,
+                receipt_no   = exp.receipt_no,
+                is_recurring = True,
+                created_by   = current_user.id
+            ))
+            count += 1
+
+    db.session.commit()
+    flash(f'{count} tekrar eden gider bu aya eklendi.', 'success')
+    return redirect(url_for('site_admin.expenses', year=year, month=month))
+
+
+
+
+
+# ── Yardım Dosyaları ──────────────────────────────────────────────────────
+@site_admin_bp.route('/yardim')
+@login_required
+@site_admin_required
+def yardim():
+    return render_template('site_admin/yardim.html')
+
+
+# ── Duyuru Yönetimi ───────────────────────────────────────────────────────
+@site_admin_bp.route('/duyurular')
+@login_required
+@site_admin_required
+def duyurular():
+    from app.models.models import Announcement
+    site = get_active_site()
+    if not site:
+        return redirect(url_for('site_admin.dashboard'))
+    duyuru_list = Announcement.query.filter_by(site_id=site.id)\
+        .order_by(Announcement.publish_at.desc()).all()
+    return render_template('site_admin/duyurular.html',
+                           site=site, duyurular=duyuru_list, now=datetime.now())
+
+
+@site_admin_bp.route('/duyurular/yeni', methods=['GET', 'POST'])
+@login_required
+@site_admin_required
+def yeni_duyuru():
+    from app.models.models import Announcement
+    site = get_active_site()
+    if not site:
+        return redirect(url_for('site_admin.dashboard'))
+
+    if request.method == 'POST':
+        publish_at = datetime.strptime(
+            request.form.get('publish_at'), '%Y-%m-%dT%H:%M'
+        )
+        db.session.add(Announcement(
+            site_id      = site.id,
+            title        = request.form.get('title'),
+            content      = request.form.get('content'),
+            publish_at   = publish_at,
+            send_sms     = bool(request.form.get('send_sms')),
+            send_mail    = bool(request.form.get('send_mail')),
+            is_published = False,
+            created_by   = current_user.id
+        ))
+        db.session.commit()
+        flash('Duyuru oluşturuldu. Belirlenen tarih ve saatte yayınlanacak.', 'success')
+        return redirect(url_for('site_admin.duyurular'))
+
+    return render_template('site_admin/duyuru_form.html', site=site, duyuru=None)
+
+
+@site_admin_bp.route('/duyurular/<int:did>/sil', methods=['POST'])
+@login_required
+@site_admin_required
+def duyuru_sil(did):
+    from app.models.models import Announcement
+    d = Announcement.query.get_or_404(did)
+    db.session.delete(d)
+    db.session.commit()
+    flash('Duyuru silindi.', 'success')
+    return redirect(url_for('site_admin.duyurular'))
+
+
+@site_admin_bp.route('/duyurular/<int:did>/hemen-yayinla', methods=['POST'])
+@login_required
+@site_admin_required
+def duyuru_hemen_yayinla(did):
+    from app.models.models import Announcement
+    from app.utils import send_mail, send_sms
+    from app.models.models import Resident, Apartment, Block
+
+    d = Announcement.query.get_or_404(did)
+    site = get_active_site()
+
+    d.is_published = True
+    d.publish_at   = datetime.now()
+
+    # SMS ve mail gönder
+    if d.send_sms or d.send_mail:
+        sakinler = Resident.query.join(Apartment).join(Block).filter(
+            Block.site_id == site.id,
+            Resident.is_active == True
+        ).all()
+
+        for res in sakinler:
+            if d.send_mail and res.email:
+                html = f'<h3>{d.title}</h3><p>{d.content}</p>'
+                send_mail(res.email, d.title, html, site.id)
+            if d.send_sms and res.phone:
+                send_sms(res.phone, f'{d.title}: {d.content[:100]}', site.id)
+
+        d.sms_sent  = d.send_sms
+        d.mail_sent = d.send_mail
+
+    db.session.commit()
+    flash('Duyuru hemen yayınlandı ve bildirimler gönderildi.', 'success')
+    return redirect(url_for('site_admin.duyurular'))

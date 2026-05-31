@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Online Ödeme{% endblock %}
+{% block page_title %}Online Ödeme{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    {% if not unpaid_dues %}
+    <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+        <i class="fa-solid fa-circle-check text-green-500 text-4xl mb-3"></i>
+        <p class="font-semibold text-green-700">Tüm aidatlarınız ödenmiş!</p>
+        <a href="{{ url_for('resident.dashboard') }}" class="mt-3 inline-block text-sm text-green-600 hover:underline">← Geri Dön</a>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-700 mb-4">
+            <i class="fa-solid fa-credit-card text-purple-500 mr-2"></i>
+            Ödenecek Aidatları Seçin
+        </h3>
+
+        <form method="POST" class="space-y-4">
+            <div class="space-y-2">
+                {% set months_tr = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'] %}
+                {% for due in unpaid_dues %}
+                <label class="flex items-center gap-3 border border-gray-200 rounded-lg px-4 py-3 cursor-pointer hover:border-purple-400 transition-colors">
+                    <input type="checkbox" name="due_ids" value="{{ due.id }}"
+                           class="w-4 h-4 text-purple-600" checked>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-700">
+                            {{ months_tr[due.period_month] }} {{ due.period_year }}
+                            {% if due.due_type == 'yakit' %}
+                            <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full ml-1">Yakıt</span>
+                            {% endif %}
+                        </p>
+                        {% if due.due_date %}
+                        <p class="text-xs text-gray-400">Vade: {{ due.due_date.strftime('%d.%m.%Y') }}</p>
+                        {% endif %}
+                    </div>
+                    <p class="font-bold text-purple-700">{{ "%.2f"|format(due.amount|float) }} ₺</p>
+                </label>
+                {% endfor %}
+            </div>
+
+            <!-- Toplam -->
+            <div class="bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 flex items-center justify-between">
+                <p class="text-sm font-semibold text-purple-700">Toplam</p>
+                <p class="text-lg font-bold text-purple-800" id="toplam_goster">
+                    {{ "%.2f"|format(unpaid_dues | sum(attribute='amount') | float) }} ₺
+                </p>
+            </div>
+
+            <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                <p class="text-xs text-gray-500">
+                    <i class="fa-solid fa-lock mr-1 text-gray-400"></i>
+                    Ödemeniz <strong>{{ odeme_cfg.odeme_saglayici | upper }}</strong> güvenli ödeme altyapısı ile işlenecektir.
+                </p>
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm py-3 rounded-lg font-semibold transition-colors">
+                <i class="fa-solid fa-credit-card mr-1"></i> Ödemeye Devam Et
+            </button>
+            <a href="{{ url_for('resident.dashboard') }}"
+               class="block text-center text-sm text-gray-500 hover:text-gray-700">İptal</a>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
