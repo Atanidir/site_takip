@@ -498,3 +498,25 @@ def site_mesaj_toplu_sil():
     db.session.commit()
     flash('Kapatılmış mesajlar silindi.', 'success')
     return redirect(url_for('super_admin.site_mesajlari'))
+
+
+# ── Demo Talepleri ────────────────────────────────────────────────────────
+@super_admin_bp.route('/demo-talepleri')
+@login_required
+@super_admin_required
+def demo_talepleri():
+    from app.models.models import DemoRequest
+    talepler = DemoRequest.query.order_by(DemoRequest.created_at.desc()).all()
+    return render_template('super_admin/demo_talepleri.html', talepler=talepler)
+
+
+@super_admin_bp.route('/demo-talepleri/<int:tid>/iletisim-kuruldu', methods=['POST'])
+@login_required
+@super_admin_required
+def demo_iletisim_kuruldu(tid):
+    from app.models.models import DemoRequest
+    t = DemoRequest.query.get_or_404(tid)
+    t.is_contacted = True
+    db.session.commit()
+    flash('İletişim kuruldu olarak işaretlendi.', 'success')
+    return redirect(url_for('super_admin.demo_talepleri'))

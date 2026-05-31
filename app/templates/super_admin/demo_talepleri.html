@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Demo Talepleri{% endblock %}
+{% block page_title %}Demo Talepleri{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+
+    <div class="flex items-center justify-between mb-5">
+        <p class="text-sm text-gray-500">Toplam <strong>{{ talepler|length }}</strong> talep</p>
+        <div class="flex gap-3">
+            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                ✓ {{ talepler|selectattr('is_contacted')|list|length }} İletişim Kuruldu
+            </span>
+            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
+                ⏳ {{ talepler|rejectattr('is_contacted')|list|length }} Bekliyor
+            </span>
+        </div>
+    </div>
+
+    {% if not talepler %}
+    <div class="bg-white rounded-xl border border-gray-100 p-10 text-center">
+        <i class="fa-solid fa-inbox text-gray-300 text-4xl mb-3"></i>
+        <p class="text-gray-400">Henüz demo talebi yok.</p>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left">Ad Soyad</th>
+                    <th class="px-4 py-3 text-left">Telefon</th>
+                    <th class="px-4 py-3 text-left">E-posta</th>
+                    <th class="px-4 py-3 text-left">Site Adı</th>
+                    <th class="px-4 py-3 text-left">Daire</th>
+                    <th class="px-4 py-3 text-left">Tarih</th>
+                    <th class="px-4 py-3 text-left">Durum</th>
+                    <th class="px-4 py-3 text-left">İşlem</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for t in talepler %}
+                <tr class="hover:bg-gray-50 {{ 'opacity-60' if t.is_contacted }}">
+                    <td class="px-4 py-3 font-medium text-gray-800">{{ t.full_name }}</td>
+                    <td class="px-4 py-3">
+                        <a href="tel:{{ t.phone }}" class="text-blue-600 hover:underline">{{ t.phone }}</a>
+                    </td>
+                    <td class="px-4 py-3">
+                        <a href="mailto:{{ t.email }}" class="text-blue-600 hover:underline">{{ t.email }}</a>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">{{ t.site_name or '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ t.apartment_count or '-' }}</td>
+                    <td class="px-4 py-3 text-xs text-gray-400">{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td class="px-4 py-3">
+                        {% if t.is_contacted %}
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">✓ İletişim Kuruldu</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">⏳ Bekliyor</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if not t.is_contacted %}
+                        <form method="POST" action="{{ url_for('super_admin.demo_iletisim_kuruldu', tid=t.id) }}">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
+                                İletişim Kuruldu
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

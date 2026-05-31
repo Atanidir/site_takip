@@ -196,3 +196,40 @@ Traceback (most recent call last):
                                                                                                                                             ^
 SyntaxError: invalid decimal literal
 [UID:1043][863712] Child process with pid: 863845 was killed by signal: 15, core dumped: no
+[2026-06-01 02:05:51,684] ERROR in app: Exception on /super-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/super_admin.py", line 17, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/super_admin.py", line 45, in dashboard
+    return render_template('super_admin/dashboard.html', stats=stats, yaklasan=yaklasan, today=today)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/super_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 54, in top-level template code
+    {% include 'shared/nav_super_admin.html' %}
+  File "/home/probissi/site_takip/app/templates/shared/nav_super_admin.html", line 25, in top-level template code
+    <a href="{{ url_for('super_admin.demo_talepleri') }}"
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1084, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1073, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/werkzeug/routing/map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'super_admin.demo_talepleri'. Did you mean 'super_admin.api_mahalleler' instead?

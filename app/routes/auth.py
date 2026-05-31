@@ -273,3 +273,42 @@ def reset_password(token):
         return redirect(url_for('auth.login'))
 
     return render_template('auth/reset_password.html', token=token)
+
+
+@auth_bp.route('/demo-talep', methods=['POST'])
+def demo_talep():
+    from app.models.models import DemoRequest
+    from app.utils import send_mail
+    import json
+
+    full_name       = request.form.get('full_name', '').strip()
+    phone           = request.form.get('phone', '').strip()
+    email           = request.form.get('email', '').strip()
+    site_name       = request.form.get('site_name', '').strip()
+    apartment_count = request.form.get('apartment_count', '').strip()
+
+    if not full_name or not phone or not email:
+        return json.dumps({'success': False, 'message': 'Ad, telefon ve e-posta zorunludur.'}), 400
+
+    # Veritabanına kaydet
+    db.session.add(DemoRequest(
+        full_name       = full_name,
+        phone           = phone,
+        email           = email,
+        site_name       = site_name,
+        apartment_count = apartment_count
+    ))
+    db.session.commit()
+
+    # E-posta gönder
+    html = f'''
+    <h2>Yeni Demo Talebi</h2>
+    <p><strong>Ad Soyad:</strong> {full_name}</p>
+    <p><strong>Telefon:</strong> {phone}</p>
+    <p><strong>E-posta:</strong> {email}</p>
+    <p><strong>Site Adı:</strong> {site_name or '-'}</p>
+    <p><strong>Daire Sayısı:</strong> {apartment_count or '-'}</p>
+    '''
+    send_mail('info@probissite.com.tr', f'Yeni Demo Talebi - {full_name}', html)
+
+    return json.dumps({'success': True, 'message': 'Talebiniz alındı!'}), 200

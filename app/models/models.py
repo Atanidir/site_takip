@@ -419,3 +419,18 @@ class Announcement(db.Model):
 
     def __repr__(self):
         return f'<Announcement {self.title}>'
+
+
+class DemoRequest(db.Model):
+    __tablename__ = 'demo_requests'
+    id               = db.Column(db.Integer, primary_key=True)
+    full_name        = db.Column(db.String(128), nullable=False)
+    phone            = db.Column(db.String(20), nullable=False)
+    email            = db.Column(db.String(128), nullable=False)
+    site_name        = db.Column(db.String(128))
+    apartment_count  = db.Column(db.String(32))
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+    is_contacted     = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f'<DemoRequest {self.full_name}>'

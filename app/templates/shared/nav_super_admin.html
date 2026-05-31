@@ -22,6 +22,10 @@
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'evrak' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
     <i class="fa-solid fa-folder-open w-4"></i> Site Evrakları
 </a>
+<a href="{{ url_for('super_admin.demo_talepleri') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if request.endpoint == 'super_admin.demo_talepleri' %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-rocket w-4"></i> Demo Talepleri
+</a>
 <a href="{{ url_for('super_admin.site_mesajlari') }}"
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'mesaj' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
     <i class="fa-solid fa-envelope w-4"></i>

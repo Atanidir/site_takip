@@ -311,19 +311,36 @@ function submitDemo(){
   const name=document.getElementById('demo-name').value.trim();
   const phone=document.getElementById('demo-phone').value.trim();
   const email=document.getElementById('demo-email').value.trim();
+  const site=document.getElementById('demo-site').value.trim();
+  const count=document.getElementById('demo-count').value;
   if(!name||!phone||!email){alert('Lütfen ad, telefon ve e-posta alanlarını doldurunuz.');return;}
   const btn=document.querySelector('.form-submit');
   btn.textContent='⏳ Gönderiliyor...';
   btn.disabled=true;
-  setTimeout(()=>{
-    document.getElementById('success-msg').style.display='block';
-    btn.textContent='✅ Talebiniz Alındı';
-    document.getElementById('demo-name').value='';
-    document.getElementById('demo-phone').value='';
-    document.getElementById('demo-email').value='';
-    document.getElementById('demo-site').value='';
-    document.getElementById('demo-count').value='';
-  },1000);
+
+  const formData = new FormData();
+  formData.append('full_name', name);
+  formData.append('phone', phone);
+  formData.append('email', email);
+  formData.append('site_name', site);
+  formData.append('apartment_count', count);
+
+  fetch('/demo-talep', {method:'POST', body:formData})
+    .then(r=>r.json())
+    .then(data=>{
+      document.getElementById('success-msg').style.display='block';
+      btn.textContent='✅ Talebiniz Alındı';
+      document.getElementById('demo-name').value='';
+      document.getElementById('demo-phone').value='';
+      document.getElementById('demo-email').value='';
+      document.getElementById('demo-site').value='';
+      document.getElementById('demo-count').value='';
+    })
+    .catch(()=>{
+      btn.textContent='🚀 Demo Talep Et';
+      btn.disabled=false;
+      alert('Bir hata oluştu, lütfen tekrar deneyin.');
+    });
 }
 </script>
 <!-- Özel Gün Kutlama Popup -->
