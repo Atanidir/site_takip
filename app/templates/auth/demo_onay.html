@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Demo Kullanım Koşulları{% endblock %}
+{% block page_title %}Demo Kullanım Koşulları{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <!-- Üst banner -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-center">
+            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-rocket text-white text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">14 Günlük Ücretsiz Demo</h2>
+            <p class="text-blue-200 text-sm">Tüm özellikleri ücretsiz deneyin</p>
+        </div>
+
+        <div class="p-6">
+
+            <!-- Demo bilgileri -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-blue-50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-700">14</p>
+                    <p class="text-xs text-blue-600">Gün Ücretsiz</p>
+                </div>
+                <div class="bg-green-50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-green-700">%100</p>
+                    <p class="text-xs text-green-600">Tüm Özellikler</p>
+                </div>
+                <div class="bg-purple-50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-purple-700">0₺</p>
+                    <p class="text-xs text-purple-600">Kredi Kartı Yok</p>
+                </div>
+            </div>
+
+            <!-- Yasal metin -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
+                <h3 class="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-yellow-600"></i>
+                    Yasal Bilgilendirme
+                </h3>
+                <div class="text-sm text-yellow-800 space-y-2">
+                    <p>6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında, mesafeli sözleşmelerde tüketicilerin <strong>14 günlük cayma hakkı</strong> bulunmaktadır.</p>
+                    <p>Bu 14 günlük ücretsiz demo süresini kullanarak, <strong>yasal cayma/iade hakkınızı</strong> ProbisYönetim hizmetini deneyimlemek için kullanmış olacaksınız.</p>
+                    <p>Demo süresi sonunda lisans satın almanız halinde cayma hakkı kullanılmış sayılacağından <strong>iade talep edilemeyecektir.</strong></p>
+                </div>
+            </div>
+
+            <!-- Onay formu -->
+            <form method="POST">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" name="onay" id="onay_cb" class="mt-1 w-4 h-4 flex-shrink-0">
+                        <p class="text-sm text-gray-700">
+                            <strong>Okudum ve kabul ediyorum:</strong> 14 günlük ücretsiz deneme süresini 6502 sayılı Kanun kapsamındaki yasal cayma/iade hakkım olarak kullandığımı ve bu süre içinde hizmeti deneyimlemiş olarak süre sonunda iade talebinde bulunamayacağımı kabul ediyorum.
+                        </p>
+                    </label>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-3 rounded-lg font-semibold transition-colors">
+                    <i class="fa-solid fa-rocket mr-1"></i> Kabul Ediyorum — Demo Sürecini Başlat
+                </button>
+
+                <p class="text-center text-xs text-gray-400 mt-3">
+                    Kabul etmezseniz sisteme giriş yapamazsınız. Destek için:
+                    <a href="tel:+905435804646" class="text-blue-500">+90 543 580 46 46</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

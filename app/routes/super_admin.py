@@ -61,11 +61,22 @@ def new_license():
     if request.method == 'POST':
         import secrets
         key = request.form.get('license_key') or secrets.token_urlsafe(24)
+        from datetime import datetime, timedelta
+        is_demo = bool(request.form.get('is_demo'))
+        demo_start = None
+        demo_end   = None
+        if is_demo:
+            demo_start = datetime.utcnow()
+            demo_end   = demo_start + timedelta(days=14)
+
         lic = License(
-            license_key  = key,
-            description  = request.form.get('description'),
-            valid_until  = request.form.get('valid_until') or None,
-            is_active    = True
+            license_key     = key,
+            description     = request.form.get('description'),
+            valid_until     = request.form.get('valid_until') or None,
+            is_active       = True,
+            is_demo         = is_demo,
+            demo_start_date = demo_start,
+            demo_end_date   = demo_end,
         )
         db.session.add(lic)
         db.session.commit()
@@ -80,9 +91,17 @@ def new_license():
 def edit_license(lid):
     lic = License.query.get_or_404(lid)
     if request.method == 'POST':
+        from datetime import datetime, timedelta
         lic.description = request.form.get('description')
         lic.valid_until = request.form.get('valid_until') or None
         lic.is_active   = bool(request.form.get('is_active'))
+        # Demo uzatma
+        if request.form.get('demo_uzat'):
+            lic.demo_end_date = datetime.utcnow() + timedelta(days=int(request.form.get('demo_uzat_gun', 14)))
+        # Demo'dan lisansa geçiş
+        if request.form.get('demo_bitir'):
+            lic.is_demo = False
+            lic.demo_end_date = None
         db.session.commit()
         flash('Lisans güncellendi.', 'success')
         return redirect(url_for('super_admin.licenses'))

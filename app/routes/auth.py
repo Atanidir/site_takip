@@ -62,6 +62,14 @@ def login():
                 pass
 
             # Site admin girişinde otomatik bildirim oluştur
+            # Demo onay kontrolü
+            if user.role == 'site_admin' and user.license and user.license.is_demo and not user.license.demo_onay:
+                return redirect(url_for('auth.demo_onay'))
+
+            # Demo süresi doldu kontrolü
+            if user.role == 'site_admin' and user.license and user.license.is_demo and user.license.demo_suresi_doldu:
+                return redirect(url_for('auth.demo_bitti'))
+
             if user.role == 'site_admin':
                 try:
                     from app.models.models import Notification, Due, Apartment, Block, Site
@@ -312,3 +320,37 @@ def demo_talep():
     send_mail('info@probissite.com.tr', f'Yeni Demo Talebi - {full_name}', html)
 
     return json.dumps({'success': True, 'message': 'Talebiniz alındı!'}), 200
+
+
+@auth_bp.route('/demo-onay', methods=['GET', 'POST'])
+@login_required
+def demo_onay():
+    if not current_user.license or not current_user.license.is_demo:
+        return redirect(url_for('site_admin.dashboard'))
+    if current_user.license.demo_onay:
+        return redirect(url_for('site_admin.dashboard'))
+
+    if request.method == 'POST':
+        if request.form.get('onay'):
+            from datetime import datetime
+            from app import db
+            current_user.license.demo_onay      = True
+            current_user.license.demo_onay_date = datetime.utcnow()
+            current_user.license.demo_onay_ip   = request.remote_addr
+            db.session.commit()
+            flash('Demo süreniz başladı. 14 gün boyunca tüm özellikleri kullanabilirsiniz.', 'success')
+            return redirect(url_for('site_admin.dashboard'))
+        else:
+            flash('Devam etmek için koşulları kabul etmeniz gerekmektedir.', 'danger')
+
+    return render_template('auth/demo_onay.html')
+
+
+@auth_bp.route('/demo-bitti')
+@login_required
+def demo_bitti():
+    if not current_user.license or not current_user.license.is_demo:
+        return redirect(url_for('site_admin.dashboard'))
+    if not current_user.license.demo_suresi_doldu:
+        return redirect(url_for('site_admin.dashboard'))
+    return render_template('auth/demo_bitti.html')

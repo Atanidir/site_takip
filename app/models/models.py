@@ -5,16 +5,35 @@ from app import db
 
 class License(db.Model):
     __tablename__ = 'licenses'
-    id            = db.Column(db.Integer, primary_key=True)
-    license_key   = db.Column(db.String(64), unique=True, nullable=False)
-    description   = db.Column(db.String(255))
-    is_active     = db.Column(db.Boolean, default=True)
-    valid_until   = db.Column(db.Date, nullable=True)
-    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+    id              = db.Column(db.Integer, primary_key=True)
+    license_key     = db.Column(db.String(64), unique=True, nullable=False)
+    description     = db.Column(db.String(255))
+    is_active       = db.Column(db.Boolean, default=True)
+    valid_until     = db.Column(db.Date, nullable=True)
+    is_demo         = db.Column(db.Boolean, default=False)
+    demo_start_date = db.Column(db.DateTime, nullable=True)
+    demo_end_date   = db.Column(db.DateTime, nullable=True)
+    demo_onay       = db.Column(db.Boolean, default=False)
+    demo_onay_date  = db.Column(db.DateTime, nullable=True)
+    demo_onay_ip    = db.Column(db.String(45), nullable=True)
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
 
     users   = db.relationship('User', backref='license', lazy='dynamic')
     profile = db.relationship('LicenseProfile', backref='license', uselist=False,
                               cascade='all, delete-orphan')
+
+    @property
+    def demo_suresi_doldu(self):
+        if self.is_demo and self.demo_end_date:
+            return datetime.utcnow() > self.demo_end_date
+        return False
+
+    @property
+    def demo_kalan_gun(self):
+        if self.is_demo and self.demo_end_date:
+            kalan = (self.demo_end_date - datetime.utcnow()).days
+            return max(0, kalan)
+        return 0
 
     def __repr__(self):
         return f'<License {self.license_key}>'
@@ -285,7 +304,7 @@ class SystemSettings(db.Model):
     netgsm_header   = db.Column(db.String(20))
     vatansms_api_id = db.Column(db.String(20))
     vatansms_api_key= db.Column(db.String(64))
-    mail_active     = db.Column(db.Boolean, default=False)
+    mail_active          = db.Column(db.Boolean, default=False)
     sms_active           = db.Column(db.Boolean, default=False)
     odeme_saglayici      = db.Column(db.String(20), default=None)
     odeme_active         = db.Column(db.Boolean, default=False)
@@ -392,6 +411,7 @@ class AdminMessage(db.Model):
     site   = db.relationship('Site', foreign_keys=[site_id])
     sender = db.relationship('User', foreign_keys=[sender_id])
 
+
 # ─────────────────────────────────────────
 # DUYURULAR
 # ─────────────────────────────────────────
@@ -413,9 +433,6 @@ class Announcement(db.Model):
 
     site    = db.relationship('Site', foreign_keys=[site_id])
     creator = db.relationship('User', foreign_keys=[created_by])
-
-    def __repr__(self):
-        return f'<Announcement {self.title}>'
 
     def __repr__(self):
         return f'<Announcement {self.title}>'

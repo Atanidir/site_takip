@@ -3,58 +3,125 @@
 {% block page_title %}{{ 'Lisans Düzenle' if license else 'Yeni Lisans Oluştur' }}{% endblock %}
 
 {% block content %}
-<div class="max-w-lg">
+<div class="max-w-2xl">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <form method="POST">
-            <div class="space-y-4">
-                {% if not license %}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Lisans Anahtarı</label>
-                    <input type="text" name="license_key"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Boş bırakırsanız otomatik oluşturulur">
-                </div>
-                {% else %}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Lisans Anahtarı</label>
-                    <p class="font-mono text-sm bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">{{ license.license_key }}</p>
-                </div>
-                {% endif %}
+        <form method="POST" class="space-y-5">
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
-                    <input type="text" name="description" value="{{ license.description if license else '' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Ör: İstanbul Güneşli Sitesi">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Geçerlilik Tarihi</label>
-                    <input type="date" name="valid_until"
-                           value="{{ license.valid_until.strftime('%Y-%m-%d') if license and license.valid_until else '' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-400 mt-1">Boş bırakırsanız süresiz olur.</p>
-                </div>
-
-                {% if license %}
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="is_active" id="is_active" {{ 'checked' if license.is_active }}>
-                    <label for="is_active" class="text-sm text-gray-700">Aktif</label>
-                </div>
-                {% endif %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lisans Anahtarı</label>
+                <input type="text" name="license_key" value="{{ license.license_key if license else '' }}"
+                       placeholder="Boş bırakırsanız otomatik oluşturulur"
+                       {{ 'readonly' if license }}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <div class="flex gap-3 mt-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                <input type="text" name="description" value="{{ license.description if license else '' }}"
+                       placeholder="Örn: Güneş Sitesi - 1 Yıllık Lisans"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Geçerlilik Tarihi</label>
+                <input type="date" name="valid_until"
+                       value="{{ license.valid_until.strftime('%Y-%m-%d') if license and license.valid_until else '' }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-gray-400 mt-1">Boş bırakırsanız süresiz olur.</p>
+            </div>
+
+            {% if not license %}
+            <!-- Demo Lisansı Seçeneği - Sadece yeni lisansta -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="is_demo" id="is_demo" onchange="toggleDemoInfo(this)">
+                    <div>
+                        <p class="font-semibold text-blue-800 text-sm">14 Günlük Demo Lisansı</p>
+                        <p class="text-xs text-blue-600">Lisans oluşturulduğu andan itibaren 14 gün geçerli olur.</p>
+                    </div>
+                </label>
+                <div id="demoInfo" class="hidden mt-3 bg-white rounded-lg p-3 border border-blue-200">
+                    <p class="text-xs text-gray-600 font-medium mb-1">Site admin ilk girişte şu metni onaylayacak:</p>
+                    <p class="text-xs text-gray-500 italic">"14 günlük ücretsiz deneme süresini yasal cayma/iade hakkım olarak kullandığımı ve bu süre sonunda iade talebinde bulunamayacağımı kabul ediyorum."</p>
+                </div>
+            </div>
+            {% else %}
+            <!-- Mevcut lisansta aktif/pasif -->
+            <div class="flex items-center gap-3">
+                <input type="checkbox" name="is_active" {{ 'checked' if license.is_active }}>
+                <label class="text-sm text-gray-700">Lisans Aktif</label>
+            </div>
+
+            {% if license.is_demo %}
+            <!-- Demo yönetim bölümü -->
+            <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
+                <h4 class="font-semibold text-orange-800 text-sm">Demo Durumu</h4>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-500">Başlangıç</p>
+                        <p class="font-medium">{{ license.demo_start_date.strftime('%d.%m.%Y %H:%M') if license.demo_start_date else '—' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Bitiş</p>
+                        <p class="font-medium {{ 'text-red-600' if license.demo_suresi_doldu else 'text-green-600' }}">
+                            {{ license.demo_end_date.strftime('%d.%m.%Y %H:%M') if license.demo_end_date else '—' }}
+                            {% if license.demo_suresi_doldu %}
+                            <span class="text-xs">(Süresi doldu)</span>
+                            {% else %}
+                            <span class="text-xs">({{ license.demo_kalan_gun }} gün kaldı)</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Onay Durumu</p>
+                    {% if license.demo_onay %}
+                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">✓ Onaylandı — {{ license.demo_onay_date.strftime('%d.%m.%Y %H:%M') if license.demo_onay_date else '' }}</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">⏳ Henüz onaylanmadı</span>
+                    {% endif %}
+                </div>
+                <div class="flex gap-3 pt-2 border-t border-orange-200">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-600 mb-1 block">Demo Uzat (Gün)</label>
+                        <input type="number" name="demo_uzat_gun" value="14" min="1" max="90"
+                               class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button type="submit" name="demo_uzat" value="1"
+                                class="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-2 rounded-lg">
+                            Uzat
+                        </button>
+                        <button type="submit" name="demo_bitir" value="1"
+                                onclick="return confirm('Demo süresi sonlandırılıp tam lisansa mı geçilsin?')"
+                                class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-lg">
+                            Lisansa Geçir
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <div class="flex gap-3 pt-2">
                 <button type="submit"
-                        class="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Kaydet
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 rounded-lg font-semibold transition-colors">
+                    <i class="fa-solid fa-save mr-1"></i> {{ 'Güncelle' if license else 'Oluştur' }}
                 </button>
                 <a href="{{ url_for('super_admin.licenses') }}"
-                   class="bg-gray-100 text-gray-700 text-sm px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                   class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded-lg transition-colors">
                     İptal
                 </a>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleDemoInfo(cb) {
+    document.getElementById('demoInfo').classList.toggle('hidden', !cb.checked);
+}
+</script>
 {% endblock %}
