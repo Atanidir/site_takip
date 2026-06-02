@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /site-admin/
+Disallow: /super-admin/
+Disallow: /resident/
+Disallow: /login
+Disallow: /logout
+
+Sitemap: https://probissite.com.tr/sitemap.xml

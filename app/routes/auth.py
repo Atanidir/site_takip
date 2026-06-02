@@ -354,3 +354,15 @@ def demo_bitti():
     if not current_user.license.demo_suresi_doldu:
         return redirect(url_for('site_admin.dashboard'))
     return render_template('auth/demo_bitti.html')
+
+
+@auth_bp.route('/sitemap.xml')
+def sitemap():
+    from flask import send_from_directory
+    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
+
+@auth_bp.route('/robots.txt')
+def robots():
+    from flask import send_from_directory
+    return send_from_directory('static', 'robots.txt', mimetype='text/plain')
