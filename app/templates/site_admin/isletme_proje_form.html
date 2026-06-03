@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}Yeni İşletme Projesi{% endblock %}
+{% block page_title %}İşletme Projesi Oluştur{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="POST" class="space-y-6">
+
+            <!-- Site Seçimi -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Site</label>
+                <select name="site_id" id="site_id"
+                        onchange="window.location.href='{{ url_for('site_admin.yeni_isletme_projesi') }}?site_id='+this.value"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% for s in siteler %}
+                    <option value="{{ s.id }}" {{ 'selected' if s.id == site.id }}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Temel Bilgiler -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yıl</label>
+                    <input type="number" name="yil" value="{{ now.year if now else 2026 }}" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kapsam</label>
+                    <select name="block_id" id="block_id" onchange="daireSayisiGetir(this.value)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tüm Site</option>
+                        {% for blok in bloklar %}
+                        <option value="{{ blok.id }}" data-daire="{{ blok.apartments.count() }}">{{ blok.name }} ({{ blok.apartments.count() }} daire)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Daire Sayısı</label>
+                    <input type="number" name="daire_sayisi" required min="1" id="daire_sayisi"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">Blok seçilince otomatik dolar.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Rezerv Fon Oranı</label>
+                    <select name="rezerv_oran" id="rezerv_oran" onchange="toplamHesapla()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="0">Rezerv Fon Yok</option>
+                        <option value="10">%10</option>
+                        <option value="12">%12</option>
+                        <option value="15">%15</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- KMK Bilgileri -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">KMK Karar Tarihi</label>
+                    <input type="date" name="kmk_karar_tarihi"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">KMK Karar No</label>
+                    <input type="text" name="kmk_karar_no" placeholder="Örn: 2026/01"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Gider Kalemleri -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-semibold text-gray-700">Gider Kalemleri</h3>
+                    <button type="button" onclick="kalemEkle()"
+                            class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200">
+                        <i class="fa-solid fa-plus mr-1"></i> Kalem Ekle
+                    </button>
+                </div>
+
+                <div id="kalemler" class="space-y-2">
+                    {% for kalem in varsayilan_kalemler %}
+                    <div class="kalem-satir flex items-center gap-2">
+                        <input type="text" name="kalem_adi" value="{{ kalem }}"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" name="aylik_tutar" step="0.01" min="0"
+                               placeholder="Aylık TL" oninput="toplamHesapla()"
+                               class="w-36 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="button" onclick="kalemSil(this)"
+                                class="text-red-400 hover:text-red-600 px-2">
+                            <i class="fa-solid fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Rezerv Fon Satırı (otomatik) -->
+                <div id="rezervSatir" class="hidden mt-2">
+                    <div class="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                        <input type="text" name="kalem_adi" value="Rezerv Fon" readonly
+                               class="flex-1 px-2 py-1 bg-transparent text-sm text-orange-700 font-medium">
+                        <input type="number" name="aylik_tutar" id="rezervTutar" step="0.01" readonly
+                               class="w-36 px-2 py-1 bg-transparent text-sm text-orange-700 font-medium text-right">
+                        <span class="w-8"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özet Kartı -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-xs text-blue-600 mb-1">Aylık Toplam</p>
+                        <p class="font-bold text-blue-800 text-lg" id="aylikToplam">0,00 ₺</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-blue-600 mb-1">Yıllık Toplam</p>
+                        <p class="font-bold text-blue-800 text-lg" id="yillikToplam">0,00 ₺</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-green-600 mb-1">Daire Başı Aidat</p>
+                        <p class="font-bold text-green-700 text-lg" id="daireBasiAidat">0,00 ₺</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notlar -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notlar</label>
+                <textarea name="notlar" rows="3" placeholder="İsteğe bağlı notlar..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 rounded-lg font-semibold transition-colors">
+                    <i class="fa-solid fa-save mr-1"></i> Kaydet
+                </button>
+                <a href="{{ url_for('site_admin.isletme_projeleri') }}"
+                   class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded-lg transition-colors">
+                    İptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Blok seçilince daire sayısını otomatik doldur
+function daireSayisiGetir(blockId) {
+    if (!blockId) {
+        // Tüm site seçildi — tüm daireleri topla
+        const opts = document.querySelectorAll('#block_id option[data-daire]');
+        let toplam = 0;
+        opts.forEach(o => toplam += parseInt(o.dataset.daire) || 0);
+        document.getElementById('daire_sayisi').value = toplam;
+    } else {
+        const opt = document.querySelector(`#block_id option[value="${blockId}"]`);
+        if (opt) document.getElementById('daire_sayisi').value = opt.dataset.daire || '';
+    }
+    toplamHesapla();
+}
+
+function toplamHesapla() {
+    const tutarlar = document.querySelectorAll('#kalemler input[name="aylik_tutar"]');
+    let toplam = 0;
+    tutarlar.forEach(t => toplam += parseFloat(t.value) || 0);
+
+    const rezervOran = parseFloat(document.getElementById('rezerv_oran').value) || 0;
+    let rezerv = 0;
+    if (rezervOran > 0) {
+        rezerv = toplam * rezervOran / 100;
+        document.getElementById('rezervTutar').value = rezerv.toFixed(2);
+        document.getElementById('rezervSatir').classList.remove('hidden');
+        toplam += rezerv;
+    } else {
+        document.getElementById('rezervSatir').classList.add('hidden');
+    }
+
+    const daire = parseInt(document.getElementById('daire_sayisi').value) || 0;
+    const fmt = v => v.toLocaleString('tr-TR', {minimumFractionDigits:2}) + ' ₺';
+    document.getElementById('aylikToplam').textContent = fmt(toplam);
+    document.getElementById('yillikToplam').textContent = fmt(toplam * 12);
+    document.getElementById('daireBasiAidat').textContent = daire > 0 ? fmt(toplam / daire) : '0,00 ₺';
+}
+
+function kalemEkle() {
+    const div = document.createElement('div');
+    div.className = 'kalem-satir flex items-center gap-2';
+    div.innerHTML = `
+        <input type="text" name="kalem_adi" placeholder="Kalem adı"
+               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="number" name="aylik_tutar" step="0.01" min="0"
+               placeholder="Aylık TL" oninput="toplamHesapla()"
+               class="w-36 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="button" onclick="kalemSil(this)" class="text-red-400 hover:text-red-600 px-2">
+            <i class="fa-solid fa-trash text-sm"></i>
+        </button>`;
+    document.getElementById('kalemler').appendChild(div);
+}
+
+function kalemSil(btn) {
+    btn.closest('.kalem-satir').remove();
+    toplamHesapla();
+}
+
+document.getElementById('daire_sayisi').addEventListener('input', toplamHesapla);
+
+// Sayfa yüklenince tüm site daire sayısını hesapla
+window.addEventListener('load', () => daireSayisiGetir(''));
+</script>
+{% endblock %}

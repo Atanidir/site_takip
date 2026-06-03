@@ -11,8 +11,6 @@
 <meta name="google-site-verification" content="N_gnpAPgxMAMHADK6EeWLRNDC03HFj9INHEzKDAHsFg" />
 <meta name="theme-color" content="#1e3a8a">
 <link rel="canonical" href="https://probissite.com.tr">
-
-<!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://probissite.com.tr">
 <meta property="og:title" content="ProbisYönetim — Profesyonel Site Yönetim Sistemi">
@@ -20,15 +18,11 @@
 <meta property="og:image" content="https://probissite.com.tr/static/img/og-image.png">
 <meta property="og:locale" content="tr_TR">
 <meta property="og:site_name" content="ProbisYönetim">
-
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://probissite.com.tr">
 <meta name="twitter:title" content="ProbisYönetim — Profesyonel Site Yönetim Sistemi">
 <meta name="twitter:description" content="Aidat takibi, sakin yönetimi, gider raporlama ve online ödeme. Ücretsiz 14 günlük demo ile hemen deneyin.">
 <meta name="twitter:image" content="https://probissite.com.tr/static/img/og-image.png">
-
-<!-- Schema.org JSON-LD -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -36,21 +30,10 @@
   "name": "ProbisYönetim",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
-  "description": "Profesyonel site ve apartman yönetim sistemi. Aidat takibi, sakin yönetimi, gider raporlama ve online ödeme.",
+  "description": "Profesyonel site ve apartman yönetim sistemi.",
   "url": "https://probissite.com.tr",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "TRY",
-    "description": "14 günlük ücretsiz demo"
-  },
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "telephone": "+90-543-580-46-46",
-    "email": "info@probissite.com.tr",
-    "contactType": "customer service",
-    "availableLanguage": "Turkish"
-  }
+  "offers": {"@type": "Offer","price": "0","priceCurrency": "TRY"},
+  "contactPoint": {"@type": "ContactPoint","telephone": "+90-543-580-46-46","email": "info@probissite.com.tr","contactType": "customer service","availableLanguage": "Turkish"}
 }
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -355,6 +338,17 @@ footer strong{color:var(--white)}
   <a href="tel:+905435804646" style="color:#60a5fa;text-decoration:none">+90 543 580 46 46</a></p>
 </footer>
 
+<!-- Özel Gün Kutlama Popup -->
+<div id="ozelGunPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;">
+  <div id="ozelGunKutu" style="border-radius:24px;padding:60px 50px;max-width:560px;width:90%;text-align:center;position:relative;border:1px solid rgba(255,255,255,0.15);">
+    <div id="ozelGunEmoji" style="font-size:80px;margin-bottom:20px;line-height:1.2;"></div>
+    <h2 id="ozelGunBaslik" style="font-family:'Playfair Display',serif;font-size:28px;color:#ffffff;margin-bottom:16px;line-height:1.4;"></h2>
+    <p id="ozelGunMesaj" style="font-size:16px;color:rgba(255,255,255,0.85);line-height:1.8;margin-bottom:32px;"></p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:24px;">— ProbisYönetim Ailesi —</p>
+    <button onclick="ozelGunKapat()" style="background:#10b981;color:white;border:none;padding:14px 48px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Teşekkürler 🙏</button>
+  </div>
+</div>
+
 <script>
 function submitDemo(){
   const name=document.getElementById('demo-name').value.trim();
@@ -366,14 +360,12 @@ function submitDemo(){
   const btn=document.querySelector('.form-submit');
   btn.textContent='⏳ Gönderiliyor...';
   btn.disabled=true;
-
   const formData = new FormData();
   formData.append('full_name', name);
   formData.append('phone', phone);
   formData.append('email', email);
   formData.append('site_name', site);
   formData.append('apartment_count', count);
-
   fetch('/demo-talep', {method:'POST', body:formData})
     .then(r=>r.json())
     .then(data=>{
@@ -391,26 +383,13 @@ function submitDemo(){
       alert('Bir hata oluştu, lütfen tekrar deneyin.');
     });
 }
-</script>
-<!-- Özel Gün Kutlama Popup -->
-<div id="ozelGunPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;">
-  <div id="ozelGunKutu" style="background:linear-gradient(135deg,#1e3a8a,#065f46);border-radius:24px;padding:60px 50px;max-width:560px;width:90%;text-align:center;position:relative;border:1px solid rgba(255,255,255,0.15);">
-    <div id="ozelGunEmoji" style="font-size:80px;margin-bottom:20px;">🎉</div>
-    <h2 id="ozelGunBaslik" style="font-family:'Playfair Display',serif;font-size:32px;color:#ffffff;margin-bottom:16px;line-height:1.3;"></h2>
-    <p id="ozelGunMesaj" style="font-size:17px;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:32px;"></p>
-    <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:24px;">— ProbisYönetim Ailesi —</p>
-    <button onclick="ozelGunKapat()" style="background:#10b981;color:white;border:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Teşekkürler 🙏</button>
-  </div>
-</div>
 
-<script>
+// Özel Günler - Sadece o güne ait tarihler
 const OZEL_GUNLER = {
   '01-01': { baslik: 'Mutlu Yıllar!', mesaj: 'Yeni yılınızın sağlık, mutluluk ve başarı dolu olmasını dileriz.', emoji: '🎆', renk: 'linear-gradient(135deg,#4c1d95,#1e3a8a)' },
   '04-23': { baslik: '23 Nisan Ulusal Egemenlik ve Çocuk Bayramı Kutlu Olsun!', mesaj: 'Cumhuriyetimizin çocuklara armağan ettiği bu özel günde tüm çocuklarımızın bayramı kutlu olsun.', emoji: '🌸', renk: 'linear-gradient(135deg,#991b1b,#1e3a8a)' },
   '05-01': { baslik: '1 Mayıs Emek ve Dayanışma Günü Kutlu Olsun!', mesaj: 'Tüm çalışanların emek ve dayanışma günü kutlu olsun.', emoji: '✌️', renk: 'linear-gradient(135deg,#991b1b,#7c2d12)' },
   '05-19': { baslik: '19 Mayıs Gençlik ve Spor Bayramı Kutlu Olsun!', mesaj: 'Gençliğe armağan edilen bu özel günde tüm gençlerimizin bayramı kutlu olsun.', emoji: '🏅', renk: 'linear-gradient(135deg,#991b1b,#1e3a8a)' },
-  '05-31': { baslik: 'Emlak Vergisi 1. Taksit Hatırlatması!', mesaj: 'Emlak vergisi 1. taksit ödeme son günü yarın, 1 Haziran 2026 tarihinde dolmaktadır. Gecikme faizinden kaçınmak için vergilerinizi bugün ödeyebilirsiniz.', emoji: '🏦', renk: 'linear-gradient(135deg,#92400e,#1e3a8a)' },
-  '06-01': { baslik: 'Emlak Vergisi 1. Taksit Hatırlatması!', mesaj: 'Emlak vergisi 1. taksit ödeme son günü 1 Haziran 2026 tarihinde dolmaktadır. Gecikme faizinden kaçınmak için vergilerinizi bugün ödeyebilirsiniz.', emoji: '🏦', renk: 'linear-gradient(135deg,#92400e,#1e3a8a)' },
   '08-30': { baslik: '30 Ağustos Zafer Bayramı Kutlu Olsun!', mesaj: 'Büyük Zaferin yıl dönümünde şehitlerimizi saygıyla anıyoruz.', emoji: '⭐', renk: 'linear-gradient(135deg,#991b1b,#7c2d12)' },
   '10-29': { baslik: '29 Ekim Cumhuriyet Bayramı Kutlu Olsun!', mesaj: 'Cumhuriyetimizin kuruluşunun yıl dönümünü kutluyoruz. Ne mutlu Türküm diyene!', emoji: '🇹🇷', renk: 'linear-gradient(135deg,#991b1b,#1e3a8a)' },
 };
@@ -422,7 +401,6 @@ function ozelGunKontrol() {
   const anahtar = ay + '-' + gun;
   const bugunStr = bugun.toDateString();
   const goruldu = localStorage.getItem('ozelgun_' + anahtar);
-  
 
   if (OZEL_GUNLER[anahtar] && goruldu !== bugunStr) {
     const veri = OZEL_GUNLER[anahtar];

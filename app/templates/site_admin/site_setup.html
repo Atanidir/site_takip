@@ -34,8 +34,36 @@
                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <!-- IBAN Bilgileri -->
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <!-- Aidat Hesaplama Ayarları -->
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-purple-800 mb-3">
+                    <i class="fa-solid fa-calculator mr-1"></i> Aidat Hesaplama Ayarları
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Hesaplama Tipi</label>
+                        <select name="hesaplama_tipi" id="hesaplama_tipi" onchange="hesaplamaTipiDegisti(this.value)"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="tum_site" {{ 'selected' if not site or site.hesaplama_tipi == 'tum_site' }}>Tüm Site</option>
+                            <option value="blok_bazli" {{ 'selected' if site and site.hesaplama_tipi == 'blok_bazli' }}>Blok Bazlı</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Blok bazlı seçilirse her blok için ayrı IBAN girilir.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Aidat Kriteri</label>
+                        <select name="aidat_kriteri"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="daire_sayisi" {{ 'selected' if not site or site.aidat_kriteri == 'daire_sayisi' }}>Daire Sayısına Göre</option>
+                            <option value="m2" {{ 'selected' if site and site.aidat_kriteri == 'm2' }}>M²'ye Göre</option>
+                            <option value="arsa_payi" {{ 'selected' if site and site.aidat_kriteri == 'arsa_payi' }}>Arsa Payına Göre</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">M² veya arsa payı seçilirse daire bilgilerinden alınır.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IBAN Bilgileri (Tüm Site) -->
+            <div id="tumSiteIban" class="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h4 class="text-sm font-semibold text-green-800 mb-3">
                     <i class="fa-solid fa-building-columns mr-1"></i> Banka / IBAN Bilgileri
                 </h4>
@@ -55,13 +83,39 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">IBAN</label>
-                            <input type="text" name="iban" value="{{ site.iban or '' if site else '' }}"
+                            <input type="text" name="iban" id="site_iban"
+                                   value="{{ site.iban or '' if site else '' }}"
+                                   oninput="ibanKontrol(this, 'site_iban_hata', 'site_iban_ok')"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                                    placeholder="TR00 0000 0000 0000 0000 0000 00"
                                    maxlength="32">
+                            <p id="site_iban_hata" class="text-xs text-red-500 mt-1 hidden">Geçersiz IBAN! TR ile başlayan 26 karakterli olmalıdır.</p>
+                            <p id="site_iban_ok" class="text-xs text-green-500 mt-1 hidden">✓ IBAN formatı doğru</p>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- IBAN Bilgileri (Blok Bazlı) -->
+            <div id="blokIbanBilgisi" class="hidden bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-green-800 mb-2">
+                    <i class="fa-solid fa-building-columns mr-1"></i> Blok IBAN Bilgileri
+                </h4>
+                <p class="text-xs text-green-700 mb-3">Her bloğun IBAN bilgisi blok düzenleme sayfasından girilir.</p>
+                {% if site and site.hesaplama_tipi == 'blok_bazli' %}
+                <div class="space-y-2">
+                    {% for blok in site.blocks %}
+                    <div class="bg-white border border-green-200 rounded-lg px-3 py-2 flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">{{ blok.name }}</span>
+                        <span class="text-xs {{ 'text-green-600' if blok.iban else 'text-red-400' }}">
+                            {{ blok.iban or 'IBAN girilmemiş' }}
+                        </span>
+                        <a href="{{ url_for('site_admin.edit_block', bid=blok.id) }}"
+                           class="text-xs text-blue-600 hover:underline">Düzenle</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
 
             <!-- Gecikme Faizi -->
@@ -94,7 +148,7 @@
                 <h4 class="text-sm font-semibold text-blue-800 mb-3">
                     <i class="fa-solid fa-calendar-days mr-1"></i> Aidat Dönemi Ayarları
                 </h4>
-                <p class="text-xs text-blue-600 mb-3">Aidat döneminin hangi günler arasında olduğunu belirleyin. Örn: Her ayın 15'inden bir sonraki ayın 15'ine kadar.</p>
+                <p class="text-xs text-blue-600 mb-3">Aidat döneminin hangi günler arasında olduğunu belirleyin.</p>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Dönem Başlangıç Günü</label>
@@ -144,4 +198,47 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function ibanKontrol(input, hataId, okId) {
+    const val = input.value.replace(/\s/g, '').toUpperCase();
+    const hata = document.getElementById(hataId);
+    const ok   = document.getElementById(okId);
+    if (!val) {
+        hata.classList.add('hidden');
+        ok.classList.add('hidden');
+        input.classList.remove('border-red-400', 'border-green-400');
+        return;
+    }
+    if (val.length === 26 && val.startsWith('TR') && /^\d+$/.test(val.slice(2))) {
+        hata.classList.add('hidden');
+        ok.classList.remove('hidden');
+        input.classList.remove('border-red-400');
+        input.classList.add('border-green-400');
+    } else {
+        ok.classList.add('hidden');
+        hata.classList.remove('hidden');
+        input.classList.add('border-red-400');
+        input.classList.remove('border-green-400');
+    }
+}
+
+function hesaplamaTipiDegisti(val) {
+    const tumSite  = document.getElementById('tumSiteIban');
+    const blokBazli = document.getElementById('blokIbanBilgisi');
+    if (val === 'blok_bazli') {
+        tumSite.classList.add('hidden');
+        blokBazli.classList.remove('hidden');
+    } else {
+        tumSite.classList.remove('hidden');
+        blokBazli.classList.add('hidden');
+    }
+}
+
+window.addEventListener('load', () => {
+    hesaplamaTipiDegisti(document.getElementById('hesaplama_tipi').value);
+});
+</script>
 {% endblock %}

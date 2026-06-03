@@ -27,6 +27,20 @@ def get_current_sites():
     return current_user.managed_sites.order_by(Site.name).all()
 
 
+
+def iban_dogrula(iban):
+    """Türkiye IBAN formatını doğrular: TR + 24 rakam"""
+    if not iban:
+        return True  # Boş geçilebilir
+    iban = iban.replace(' ', '').upper()
+    if len(iban) != 26:
+        return False
+    if not iban.startswith('TR'):
+        return False
+    if not iban[2:].isdigit():
+        return False
+    return True
+
 def get_active_site():
     """Session'daki aktif siteyi döner, yoksa ilk siteyi seçer."""
     sites = get_current_sites()
@@ -91,11 +105,17 @@ def site_setup():
             site.uavt_code    = request.form.get('uavt_code')
             site.gecikme_turu        = request.form.get('gecikme_turu', 'gunluk')
             site.gecikme_oran        = float(request.form.get('gecikme_oran', 0))
-            site.iban                = request.form.get('iban', '').replace(' ', '')
+            iban_val = request.form.get('iban', '').replace(' ', '')
+            if iban_val and not iban_dogrula(iban_val):
+                flash('Geçersiz IBAN formatı! TR ile başlayan 26 karakterli IBAN giriniz.', 'danger')
+                return render_template('site_admin/site_setup.html', site=site)
+            site.iban                = iban_val
             site.banka_adi           = request.form.get('banka_adi')
             site.hesap_sahibi        = request.form.get('hesap_sahibi')
             site.donem_baslangic_gun = int(request.form.get('donem_baslangic_gun', 1))
             site.donem_bitis_gun     = int(request.form.get('donem_bitis_gun', 1))
+            site.hesaplama_tipi      = request.form.get('hesaplama_tipi', 'tum_site')
+            site.aidat_kriteri       = request.form.get('aidat_kriteri', 'daire_sayisi')
         else:
             site = Site(
                 name=request.form.get('name'), province=request.form.get('province'),
@@ -108,6 +128,8 @@ def site_setup():
                 hesap_sahibi=request.form.get('hesap_sahibi'),
                 donem_baslangic_gun=int(request.form.get('donem_baslangic_gun', 1)),
                 donem_bitis_gun=int(request.form.get('donem_bitis_gun', 1)),
+                hesaplama_tipi=request.form.get('hesaplama_tipi', 'tum_site'),
+                aidat_kriteri=request.form.get('aidat_kriteri', 'daire_sayisi'),
             )
             site.managers.append(current_user)
             db.session.add(site)
@@ -268,6 +290,13 @@ def edit_block(bid):
         blk.neighborhood = request.form.get('neighborhood') or site.neighborhood
         blk.dis_kapi_no  = request.form.get('dis_kapi_no')
         blk.uavt_code    = request.form.get('uavt_code')
+        blok_iban = (request.form.get('iban') or '').replace(' ', '')
+        if blok_iban and not iban_dogrula(blok_iban):
+            flash('Geçersiz IBAN formatı! TR ile başlayan 26 karakterli IBAN giriniz.', 'danger')
+            return redirect(url_for('site_admin.edit_block', bid=bid))
+        blk.iban         = blok_iban or None
+        blk.banka_adi    = request.form.get('banka_adi') or None
+        blk.hesap_sahibi = request.form.get('hesap_sahibi') or None
         db.session.commit()
         flash('Blok güncellendi.', 'success')
         return redirect(url_for('site_admin.blocks'))
@@ -313,8 +342,13 @@ def new_apartment(bid):
     site = get_active_site()
     blk  = Block.query.get_or_404(bid)
     if request.method == 'POST':
+        number = request.form.get('number')
+        mevcut = Apartment.query.filter_by(block_id=blk.id, number=number).first()
+        if mevcut:
+            flash(f'Bu blokta "{number}" numaralı daire zaten mevcut!', 'danger')
+            return redirect(url_for('site_admin.new_apartment', bid=bid))
         db.session.add(Apartment(
-            block_id=blk.id, number=request.form.get('number'),
+            block_id=blk.id, number=number,
             floor=request.form.get('floor') or None,
             number_type=request.form.get('number_type','numeric'),
             number_length=int(request.form.get('number_length',3)),
@@ -322,7 +356,10 @@ def new_apartment(bid):
             aidat_muaf=bool(request.form.get('aidat_muaf')),
             demirbas_muaf=bool(request.form.get('demirbas_muaf')),
             yakit_muaf=bool(request.form.get('yakit_muaf')),
-            muaf_aciklama=request.form.get('muaf_aciklama')
+            gorevli_muaf=bool(request.form.get('gorevli_muaf')),
+            muaf_aciklama=request.form.get('muaf_aciklama'),
+            m2=request.form.get('m2') or None,
+            arsa_payi=request.form.get('arsa_payi') or None
         ))
         db.session.commit()
         flash('Daire eklendi.', 'success')
@@ -338,7 +375,12 @@ def edit_apartment(aid):
     apt  = Apartment.query.get_or_404(aid)
     blk  = apt.block
     if request.method == 'POST':
-        apt.number        = request.form.get('number')
+        number = request.form.get('number')
+        mevcut = Apartment.query.filter_by(block_id=blk.id, number=number).filter(Apartment.id != aid).first()
+        if mevcut:
+            flash(f'Bu blokta "{number}" numaralı daire zaten mevcut!', 'danger')
+            return redirect(url_for('site_admin.edit_apartment', aid=aid))
+        apt.number        = number
         apt.floor         = request.form.get('floor') or None
         apt.number_type   = request.form.get('number_type')
         apt.number_length = int(request.form.get('number_length',3))
@@ -346,7 +388,10 @@ def edit_apartment(aid):
         apt.aidat_muaf    = bool(request.form.get('aidat_muaf'))
         apt.demirbas_muaf = bool(request.form.get('demirbas_muaf'))
         apt.yakit_muaf    = bool(request.form.get('yakit_muaf'))
+        apt.gorevli_muaf  = bool(request.form.get('gorevli_muaf'))
         apt.muaf_aciklama = request.form.get('muaf_aciklama')
+        apt.m2            = request.form.get('m2') or None
+        apt.arsa_payi     = request.form.get('arsa_payi') or None
         db.session.commit()
         flash('Daire güncellendi.', 'success')
         return redirect(url_for('site_admin.apartments', bid=blk.id))
@@ -696,7 +741,15 @@ def generate_dues():
         for blk in site.blocks.all():
             tum_daireler.extend(blk.apartments.all())
 
-        daire_sayisi = len(tum_daireler)
+        # İşletme projesinden geliyorsa proje daire sayısını kullan
+        from app.models.models import IsletmeProje
+        isletme_proje_id = request.form.get('isletme_proje_id')
+        if isletme_proje_id:
+            proje = IsletmeProje.query.get(int(isletme_proje_id))
+            if proje:
+                daire_sayisi = proje.daire_sayisi
+                if proje.block_id:
+                    tum_daireler = list(proje.block.apartments.all())
         if daire_sayisi == 0:
             flash('Sistemde daire bulunamadı.', 'danger')
             return redirect(url_for('site_admin.generate_dues'))
@@ -812,7 +865,9 @@ def generate_dues():
         db.session.commit()
         flash(f'{count} aidat kaydı oluşturuldu.', 'success')
         return redirect(url_for('site_admin.dues', year=year, month=month))
-    return render_template('site_admin/generate_dues.html', site=site, year=now.year, month=now.month)
+    from app.models.models import IsletmeProje
+    isletme_projeler = IsletmeProje.query.filter_by(site_id=site.id).order_by(IsletmeProje.yil.desc()).all()
+    return render_template('site_admin/generate_dues.html', site=site, year=now.year, month=now.month, isletme_projeler=isletme_projeler)
 
 
 @site_admin_bp.route('/api/gider-hesapla')
@@ -2027,3 +2082,209 @@ def duyuru_hemen_yayinla(did):
     db.session.commit()
     flash('Duyuru hemen yayınlandı ve bildirimler gönderildi.', 'success')
     return redirect(url_for('site_admin.duyurular'))
+
+
+# ── İşletme Projesi ───────────────────────────────────────────────────────
+@site_admin_bp.route('/isletme-projeleri')
+@login_required
+@site_admin_required
+def isletme_projeleri():
+    from app.models.models import IsletmeProje
+    site = get_active_site()
+    projeler = IsletmeProje.query.filter_by(site_id=site.id)\
+        .order_by(IsletmeProje.yil.desc()).all()
+    return render_template('site_admin/isletme_projeleri.html',
+                           site=site, projeler=projeler)
+
+
+@site_admin_bp.route('/isletme-projeleri/yeni', methods=['GET', 'POST'])
+@login_required
+@site_admin_required
+def yeni_isletme_projesi():
+    from app.models.models import IsletmeProje, IsletmeProjeKalem, Block
+    from datetime import datetime
+    siteler = get_current_sites()
+
+    # Seçili site
+    secili_site_id = request.args.get('site_id') or request.form.get('site_id')
+    if secili_site_id:
+        site = Site.query.get(int(secili_site_id))
+    else:
+        site = get_active_site()
+
+    bloklar = Block.query.filter_by(site_id=site.id).all()
+
+    if request.method == 'POST':
+        block_id = request.form.get('block_id') or None
+        kmk_tarihi = request.form.get('kmk_karar_tarihi') or None
+        proje = IsletmeProje(
+            site_id          = site.id,
+            block_id         = block_id,
+            yil              = int(request.form.get('yil')),
+            kmk_karar_tarihi = kmk_tarihi,
+            kmk_karar_no     = request.form.get('kmk_karar_no'),
+            daire_sayisi     = int(request.form.get('daire_sayisi')),
+            notlar           = request.form.get('notlar'),
+            created_by       = current_user.id
+        )
+        db.session.add(proje)
+        db.session.flush()
+
+        kalem_adlari = request.form.getlist('kalem_adi')
+        kalem_tutarlar = request.form.getlist('aylik_tutar')
+        for adi, tutar in zip(kalem_adlari, kalem_tutarlar):
+            if adi.strip() and tutar:
+                db.session.add(IsletmeProjeKalem(
+                    proje_id    = proje.id,
+                    kalem_adi   = adi.strip(),
+                    aylik_tutar = float(tutar)
+                ))
+
+        db.session.commit()
+        flash('İşletme projesi oluşturuldu.', 'success')
+        return redirect(url_for('site_admin.isletme_projesi_detay', pid=proje.id))
+
+    varsayilan_kalemler = [
+        'Kapıcı Maaş + SGK',
+        'Elektrik (Ortak Alan)',
+        'Su',
+        'Asansör Bakım',
+        'Temizlik Malzemesi',
+        'Sigorta',
+        'Yönetim Hizmet Bedeli',
+    ]
+
+    return render_template('site_admin/isletme_proje_form.html',
+                           site=site, siteler=siteler, bloklar=bloklar,
+                           varsayilan_kalemler=varsayilan_kalemler,
+                           now=datetime.now())
+
+
+@site_admin_bp.route('/isletme-projeleri/<int:pid>')
+@login_required
+@site_admin_required
+def isletme_projesi_detay(pid):
+    from app.models.models import IsletmeProje
+    proje = IsletmeProje.query.get_or_404(pid)
+    return render_template('site_admin/isletme_projesi_detay.html', proje=proje)
+
+
+@site_admin_bp.route('/isletme-projeleri/<int:pid>/pdf')
+@login_required
+@site_admin_required
+def isletme_projesi_pdf(pid):
+    from app.models.models import IsletmeProje
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.colors import HexColor, white
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from flask import make_response
+    import io
+
+    pdfmetrics.registerFont(TTFont('LiberationSans', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+    pdfmetrics.registerFont(TTFont('LiberationSans-Bold', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'))
+
+    proje = IsletmeProje.query.get_or_404(pid)
+    buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=2*cm, leftMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    navy  = HexColor('#1e3a8a')
+    light = HexColor('#f1f5f9')
+
+    baslik = ParagraphStyle('B', fontName='LiberationSans-Bold', fontSize=16,
+                            textColor=navy, alignment=TA_CENTER, spaceAfter=4)
+    alt_baslik = ParagraphStyle('AB', fontName='LiberationSans', fontSize=11,
+                                textColor=HexColor('#64748b'), alignment=TA_CENTER, spaceAfter=4)
+
+    story = []
+    story.append(Paragraph(proje.site.name.upper(), baslik))
+    blok_adi = f' - {proje.block.name}' if proje.block else ''
+    story.append(Paragraph(f'{proje.yil} YILI ISLETME PROJESI{blok_adi}', baslik))
+    story.append(Spacer(1, 0.3*cm))
+    story.append(HRFlowable(width='100%', thickness=2, color=navy))
+    story.append(Spacer(1, 0.3*cm))
+
+    if proje.kmk_karar_tarihi or proje.kmk_karar_no:
+        kmk = []
+        if proje.kmk_karar_tarihi:
+            kmk.append(f'KMK Karar Tarihi: {proje.kmk_karar_tarihi.strftime("%d.%m.%Y")}')
+        if proje.kmk_karar_no:
+            kmk.append(f'KMK Karar No: {proje.kmk_karar_no}')
+        story.append(Paragraph('   |   '.join(kmk), alt_baslik))
+        story.append(Spacer(1, 0.3*cm))
+
+    tablo_data = [['Gider Kalemi', 'Aylik (TL)', 'Yillik (TL)']]
+    for k in proje.kalemler:
+        tablo_data.append([
+            k.kalem_adi,
+            f'{float(k.aylik_tutar):,.2f}',
+            f'{float(k.aylik_tutar) * 12:,.2f}'
+        ])
+    tablo_data.append(['TOPLAM', f'{proje.aylik_toplam:,.2f}', f'{proje.yillik_toplam:,.2f}'])
+
+    t = Table(tablo_data, colWidths=[9*cm, 4*cm, 4*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), navy),
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), 'LiberationSans-Bold'),
+        ('FONTNAME', (0,1), (-1,-1), 'LiberationSans'),
+        ('FONTNAME', (0,-1), (-1,-1), 'LiberationSans-Bold'),
+        ('BACKGROUND', (0,-1), (-1,-1), HexColor('#e2e8f0')),
+        ('FONTSIZE', (0,0), (-1,-1), 10),
+        ('ROWBACKGROUNDS', (0,1), (-1,-2), [white, light]),
+        ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')),
+        ('PADDING', (0,0), (-1,-1), 7),
+        ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 0.4*cm))
+
+    ozet_data = [
+        ['Toplam Daire Sayisi', str(proje.daire_sayisi)],
+        ['Aylik Toplam Gider', f'{proje.aylik_toplam:,.2f} TL'],
+        ['Yillik Toplam Gider', f'{proje.yillik_toplam:,.2f} TL'],
+        ['Aylik Daire Basi Aidat', f'{proje.daire_basi_aidat:,.2f} TL'],
+    ]
+    ozet = Table(ozet_data, colWidths=[9*cm, 8*cm])
+    ozet.setStyle(TableStyle([
+        ('FONTNAME', (0,0), (-1,-1), 'LiberationSans'),
+        ('FONTNAME', (0,-1), (-1,-1), 'LiberationSans-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 11),
+        ('BACKGROUND', (0,-1), (-1,-1), HexColor('#dbeafe')),
+        ('ROWBACKGROUNDS', (0,0), (-1,-2), [white, light]),
+        ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')),
+        ('PADDING', (0,0), (-1,-1), 8),
+        ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+    ]))
+    story.append(ozet)
+    story.append(Spacer(1, 1*cm))
+
+    imza_data = [
+        ['Yonetici', 'Denetci', 'Denetci'],
+        ['\n\n\n________________', '\n\n\n________________', '\n\n\n________________'],
+        ['Ad Soyad / Imza', 'Ad Soyad / Imza', 'Ad Soyad / Imza'],
+    ]
+    imza = Table(imza_data, colWidths=[5.67*cm, 5.67*cm, 5.67*cm])
+    imza.setStyle(TableStyle([
+        ('FONTNAME', (0,0), (-1,-1), 'LiberationSans'),
+        ('FONTNAME', (0,0), (-1,0), 'LiberationSans-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 10),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('PADDING', (0,0), (-1,-1), 8),
+    ]))
+    story.append(imza)
+
+    doc.build(story)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=isletme_projesi_{proje.yil}.pdf'
+    return response

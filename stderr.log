@@ -393,3 +393,152 @@ werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'super_
 [UID:1043][1210164] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
 [UID:1043][1210164] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
 [UID:1043][1210164] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3563564] Child process with pid: 3564873 was killed by signal: 15, core dumped: no
+[2026-06-03 15:10:28,112] ERROR in app: Exception on /resident/iyzico-odeme [GET]
+Traceback (most recent call last):
+  File "/opt/alt/python310/lib64/python3.10/http/client.py", line 910, in _get_hostport
+    port = int(host[i+1:])
+ValueError: invalid literal for int() with base 10: '//sandbox-api.iyzipay.com'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/resident.py", line 16, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/resident.py", line 238, in iyzico_odeme
+    checkout = iyzipay.CheckoutFormInitialize().create(request_data, options)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/iyzipay/iyzipay_resource.py", line 129, in create
+    return self.connect('POST', '/payment/iyzipos/checkoutform/initialize/ecom', options, request)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/iyzipay/iyzipay_resource.py", line 30, in connect
+    connection = self.httplib.HTTPSConnection(options['base_url'])
+  File "/opt/alt/python310/lib64/python3.10/http/client.py", line 1430, in __init__
+    super(HTTPSConnection, self).__init__(host, port, timeout,
+  File "/opt/alt/python310/lib64/python3.10/http/client.py", line 872, in __init__
+    (self.host, self.port) = self._get_hostport(host, port)
+  File "/opt/alt/python310/lib64/python3.10/http/client.py", line 915, in _get_hostport
+    raise InvalidURL("nonnumeric port: '%s'" % host[i+1:])
+http.client.InvalidURL: nonnumeric port: '//sandbox-api.iyzipay.com'
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3579281] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[2026-06-03 16:47:36,295] ERROR in app: Exception on /site-admin/dashboard [GET]
+Traceback (most recent call last):
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 21, in decorated
+    return f(*args, **kwargs)
+  File "/home/probissi/site_takip/app/routes/site_admin.py", line 74, in dashboard
+    return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/jinja2/environment.py", line 939, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/probissi/site_takip/app/templates/site_admin/dashboard.html", line 1, in top-level template code
+    {% extends 'base.html' %}
+  File "/home/probissi/site_takip/app/templates/base.html", line 56, in top-level template code
+    {% include 'shared/nav_site_admin.html' %}
+  File "/home/probissi/site_takip/app/templates/shared/nav_site_admin.html", line 88, in top-level template code
+    <a href="{{ url_for('site_admin.isletme_projeleri') }}"
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1084, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/flask/app.py", line 1073, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "/home/probissi/virtualenv/site_takip/3.10/lib/python3.10/site-packages/werkzeug/routing/map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'site_admin.isletme_projeleri'. Did you mean 'site_admin.sakin_mesajlari' instead?
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 8, please increase LSAPI_CHILDREN.
+[UID:1043][3749419] Reached max children process limit: 6, extra: 2, current: 8, busy: 7, please increase LSAPI_CHILDREN.

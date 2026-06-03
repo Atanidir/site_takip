@@ -85,6 +85,10 @@
     </span>
     {% endif %}
 </a>
+<a href="{{ url_for('site_admin.isletme_projeleri') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'isletme' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
+    <i class="fa-solid fa-file-invoice w-4"></i> İşletme Projesi
+</a>
 <a href="{{ url_for('site_admin.duyurular') }}"
    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {% if 'duyuru' in request.endpoint %}bg-blue-600 text-white{% else %}text-slate-300 hover:bg-slate-700{% endif %} transition-colors">
     <i class="fa-solid fa-bullhorn w-4"></i> Duyurular

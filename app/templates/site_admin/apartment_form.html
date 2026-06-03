@@ -20,18 +20,42 @@
                            placeholder="Örn: Zemin, Bodrum, 1, 2...">
                 </div>
             </div>
+
             <input type="hidden" name="number_type" value="{{ apartment.number_type if apartment else 'numeric' }}">
             <input type="hidden" name="number_length" value="{{ apartment.number_length if apartment else 3 }}">
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">UAVT Kodu</label>
                 <input type="text" name="uavt_code" value="{{ apartment.uavt_code if apartment else '' }}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
+            <!-- M² ve Arsa Payı -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                <p class="text-xs font-semibold text-blue-800 uppercase tracking-wider">Alan Bilgileri</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Brüt M²</label>
+                        <input type="number" name="m2" step="0.01" min="0"
+                               value="{{ apartment.m2|float if apartment and apartment.m2 else '' }}"
+                               placeholder="Ör: 120.00"
+                               class="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Arsa Payı</label>
+                        <input type="number" name="arsa_payi" step="0.0001" min="0"
+                               value="{{ apartment.arsa_payi|float if apartment and apartment.arsa_payi else '' }}"
+                               placeholder="Ör: 45.0000"
+                               class="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-blue-500 mt-1">Örn: 45/1000 için 45 girin</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Aidat Muafiyeti -->
             <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 space-y-3">
                 <p class="text-xs font-semibold text-yellow-800 uppercase tracking-wider">Muafiyet Ayarları</p>
-                
+
                 <div class="flex items-center gap-3">
                     <input type="checkbox" name="aidat_muaf" id="aidat_muaf"
                            {{ 'checked' if apartment and apartment.aidat_muaf }}>
@@ -56,11 +80,19 @@
                     </label>
                 </div>
 
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="gorevli_muaf" id="gorevli_muaf"
+                           {{ 'checked' if apartment and apartment.gorevli_muaf }}>
+                    <label for="gorevli_muaf" class="text-sm font-medium text-yellow-800 cursor-pointer">
+                        <i class="fa-solid fa-user-tie mr-1 text-yellow-600"></i> Görevli dairesi (tüm aidattan muaf)
+                    </label>
+                </div>
+
                 <div>
                     <label class="block text-xs font-medium text-yellow-700 mb-1">Muafiyet Açıklaması</label>
                     <input type="text" name="muaf_aciklama"
                            value="{{ apartment.muaf_aciklama if apartment else '' }}"
-                           placeholder="Örn: Zemin kat dükkan"
+                           placeholder="Örn: Kapıcı dairesi, zemin kat dükkan"
                            class="w-full px-3 py-2 border border-yellow-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 </div>
             </div>

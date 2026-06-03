@@ -107,21 +107,23 @@ site_admins_table = db.Table('site_admins',
 
 class Site(db.Model):
     __tablename__ = 'sites'
-    id              = db.Column(db.Integer, primary_key=True)
-    name            = db.Column(db.String(128), nullable=False)
-    province        = db.Column(db.String(64))
-    district        = db.Column(db.String(64))
-    neighborhood    = db.Column(db.String(64))
-    address         = db.Column(db.Text)
-    uavt_code       = db.Column(db.String(20))
-    is_active       = db.Column(db.Boolean, default=True)
-    gecikme_turu    = db.Column(db.String(10), default='gunluk')
-    gecikme_oran    = db.Column(db.Numeric(5, 2), default=0)
+    id                   = db.Column(db.Integer, primary_key=True)
+    name                 = db.Column(db.String(128), nullable=False)
+    province             = db.Column(db.String(64))
+    district             = db.Column(db.String(64))
+    neighborhood         = db.Column(db.String(64))
+    address              = db.Column(db.Text)
+    uavt_code            = db.Column(db.String(20))
+    is_active            = db.Column(db.Boolean, default=True)
+    gecikme_turu         = db.Column(db.String(10), default='gunluk')
+    gecikme_oran         = db.Column(db.Numeric(5, 2), default=0)
     iban                 = db.Column(db.String(32))
     banka_adi            = db.Column(db.String(64))
     hesap_sahibi         = db.Column(db.String(128))
     donem_baslangic_gun  = db.Column(db.Integer, default=1)
     donem_bitis_gun      = db.Column(db.Integer, default=1)
+    hesaplama_tipi       = db.Column(db.String(20), default='tum_site')  # tum_site / blok_bazli
+    aidat_kriteri        = db.Column(db.String(20), default='daire_sayisi')  # daire_sayisi / m2 / arsa_payi
     created_at           = db.Column(db.DateTime, default=datetime.utcnow)
 
     blocks   = db.relationship('Block', backref='site', lazy='dynamic',
@@ -144,6 +146,9 @@ class Block(db.Model):
     address       = db.Column(db.Text)
     dis_kapi_no   = db.Column(db.String(20))
     uavt_code     = db.Column(db.String(20))
+    iban          = db.Column(db.String(32))
+    banka_adi     = db.Column(db.String(64))
+    hesap_sahibi  = db.Column(db.String(128))
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
     apartments = db.relationship('Apartment', backref='block', lazy='dynamic',
@@ -168,6 +173,9 @@ class Apartment(db.Model):
     number_length   = db.Column(db.Integer, default=3)
     aidat_muaf      = db.Column(db.Boolean, default=False)
     muaf_aciklama   = db.Column(db.String(128))
+    gorevli_muaf    = db.Column(db.Boolean, default=False)
+    m2              = db.Column(db.Numeric(8, 2), nullable=True)
+    arsa_payi       = db.Column(db.Numeric(10, 4), nullable=True)
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
 
     residents = db.relationship('Resident', backref='apartment', lazy='dynamic',
@@ -451,3 +459,52 @@ class DemoRequest(db.Model):
 
     def __repr__(self):
         return f'<DemoRequest {self.full_name}>'
+
+
+class IsletmeProje(db.Model):
+    __tablename__ = 'isletme_projeleri'
+    id               = db.Column(db.Integer, primary_key=True)
+    site_id          = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=False)
+    block_id         = db.Column(db.Integer, db.ForeignKey('blocks.id'), nullable=True)
+    yil              = db.Column(db.Integer, nullable=False)
+    kmk_karar_tarihi = db.Column(db.Date, nullable=True)
+    kmk_karar_no     = db.Column(db.String(64))
+    daire_sayisi     = db.Column(db.Integer, nullable=False)
+    notlar           = db.Column(db.Text)
+    created_by       = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+
+    site     = db.relationship('Site', foreign_keys=[site_id])
+    block    = db.relationship('Block', foreign_keys=[block_id])
+    creator  = db.relationship('User', foreign_keys=[created_by])
+    kalemler = db.relationship('IsletmeProjeKalem', backref='proje',
+                               cascade='all, delete-orphan', lazy='dynamic')
+
+    @property
+    def aylik_toplam(self):
+        return sum(float(k.aylik_tutar) for k in self.kalemler)
+
+    @property
+    def yillik_toplam(self):
+        return self.aylik_toplam * 12
+
+    @property
+    def daire_basi_aidat(self):
+        if self.daire_sayisi:
+            return self.aylik_toplam / self.daire_sayisi
+        return 0
+
+    def __repr__(self):
+        return f'<IsletmeProje {self.yil}>'
+
+
+class IsletmeProjeKalem(db.Model):
+    __tablename__ = 'isletme_proje_kalemleri'
+    id          = db.Column(db.Integer, primary_key=True)
+    proje_id    = db.Column(db.Integer, db.ForeignKey('isletme_projeleri.id'), nullable=False)
+    kalem_adi   = db.Column(db.String(128), nullable=False)
+    aylik_tutar = db.Column(db.Numeric(12, 2), nullable=False)
+    aciklama    = db.Column(db.String(255))
+
+    def __repr__(self):
+        return f'<IsletmeProjeKalem {self.kalem_adi}>'

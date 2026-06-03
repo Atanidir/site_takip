@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}İşletme Projeleri{% endblock %}
+{% block page_title %}İşletme Projeleri{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <div class="flex items-center justify-between mb-5">
+        <p class="text-sm text-gray-500">Toplam <strong>{{ projeler|length }}</strong> proje</p>
+        <a href="{{ url_for('site_admin.yeni_isletme_projesi') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+            <i class="fa-solid fa-plus mr-1"></i> Yeni Proje
+        </a>
+    </div>
+
+    {% if not projeler %}
+    <div class="bg-white rounded-xl border border-gray-100 p-10 text-center">
+        <i class="fa-solid fa-file-invoice text-gray-300 text-4xl mb-3"></i>
+        <p class="text-gray-400">Henüz işletme projesi oluşturulmamış.</p>
+    </div>
+    {% else %}
+    <div class="space-y-4">
+        {% for p in projeler %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-semibold text-gray-800">
+                        {{ p.yil }} Yılı İşletme Projesi
+                        {% if p.block %}<span class="text-sm text-gray-500">— {{ p.block.name }}</span>{% endif %}
+                    </h3>
+                    <div class="flex gap-4 mt-1 text-sm text-gray-500">
+                        <span>{{ p.daire_sayisi }} daire</span>
+                        <span>Aylık: <strong class="text-blue-700">{{ "%.2f"|format(p.aylik_toplam) }} ₺</strong></span>
+                        <span>Aidat: <strong class="text-green-700">{{ "%.2f"|format(p.daire_basi_aidat) }} ₺</strong></span>
+                        {% if p.kmk_karar_no %}<span>KMK No: {{ p.kmk_karar_no }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{{ url_for('site_admin.isletme_projesi_detay', pid=p.id) }}"
+                       class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-lg">
+                        <i class="fa-solid fa-eye mr-1"></i> Detay
+                    </a>
+                    <a href="{{ url_for('site_admin.isletme_projesi_pdf', pid=p.id) }}" target="_blank"
+                       class="bg-red-50 hover:bg-red-100 text-red-600 text-xs px-3 py-1.5 rounded-lg border border-red-200">
+                        <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

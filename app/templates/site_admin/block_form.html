@@ -1,12 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}{{ 'Blok Düzenle' if block else 'Yeni Blok' }}{% endblock %}
 {% block page_title %}{{ 'Blok Düzenle' if block else 'Yeni Blok Ekle' }}{% endblock %}
-
 {% block content %}
 <div class="max-w-xl">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-
-        <!-- Site adres bilgisi -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-5 text-sm text-blue-700 flex items-center gap-2">
             <i class="fa-solid fa-circle-info"></i>
             <span>Adres bilgisi siteden otomatik alınır:
@@ -15,9 +12,7 @@
                 {% if site.province %} / {{ site.province }}{% endif %}</strong>
             </span>
         </div>
-
         <form method="POST" class="space-y-4">
-            <!-- Gizli adres alanları - siteden otomatik -->
             <input type="hidden" name="province"     value="{{ site.province or '' }}">
             <input type="hidden" name="district"     value="{{ site.district or '' }}">
             <input type="hidden" name="neighborhood" value="{{ site.neighborhood or '' }}">
@@ -43,6 +38,44 @@
                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
+            {% if site.hesaplama_tipi == 'blok_bazli' %}
+            <div class="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+                <p class="text-xs font-semibold text-green-800 uppercase tracking-wider">
+                    <i class="fa-solid fa-building-columns mr-1"></i> Banka / IBAN Bilgileri
+                </p>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Hesap Sahibi</label>
+                    <input type="text" name="hesap_sahibi" value="{{ block.hesap_sahibi or '' if block else '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                           placeholder="Ör: A Blok Yönetimi">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Banka Adı</label>
+                        <input type="text" name="banka_adi" value="{{ block.banka_adi or '' if block else '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="Ör: Ziraat Bankası">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">IBAN</label>
+                        <input type="text" name="iban" id="blok_iban"
+                               value="{{ block.iban or '' if block else '' }}"
+                               oninput="ibanKontrol(this, 'blok_iban_hata', 'blok_iban_ok')"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="TR00 0000 0000 0000 0000 0000 00"
+                               maxlength="32">
+                        <p id="blok_iban_hata" class="text-xs text-red-500 mt-1 hidden">Geçersiz IBAN! TR ile başlayan 26 karakterli olmalıdır.</p>
+                        <p id="blok_iban_ok" class="text-xs text-green-500 mt-1 hidden">✓ IBAN formatı doğru</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-xs text-gray-500">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                Bu site "Tüm Site" bazlı hesaplama kullanıyor. IBAN bilgisi site ayarlarından girilir.
+            </div>
+            {% endif %}
+
             <div class="flex gap-3 pt-2">
                 <button type="submit"
                         class="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Kaydet</button>
@@ -52,4 +85,31 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function ibanKontrol(input, hataId, okId) {
+    const val = input.value.replace(/\s/g, '').toUpperCase();
+    const hata = document.getElementById(hataId);
+    const ok   = document.getElementById(okId);
+    if (!val) {
+        hata.classList.add('hidden');
+        ok.classList.add('hidden');
+        input.classList.remove('border-red-400', 'border-green-400');
+        return;
+    }
+    if (val.length === 26 && val.startsWith('TR') && /^\d+$/.test(val.slice(2))) {
+        hata.classList.add('hidden');
+        ok.classList.remove('hidden');
+        input.classList.remove('border-red-400');
+        input.classList.add('border-green-400');
+    } else {
+        ok.classList.add('hidden');
+        hata.classList.remove('hidden');
+        input.classList.add('border-red-400');
+        input.classList.remove('border-green-400');
+    }
+}
+</script>
 {% endblock %}
