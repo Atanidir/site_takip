@@ -77,13 +77,15 @@ def dashboard():
     sites = get_current_sites()
     site  = get_active_site()
     stats = {}
-    if site:
-        stats['blocks']      = site.blocks.count()
-        stats['apartments']  = sum(b.apartments.count() for b in site.blocks)
+    siteler = get_current_sites()
+    site_ids = [s.id for s in siteler]
+    if siteler:
+        stats['blocks']      = Block.query.filter(Block.site_id.in_(site_ids)).count()
+        stats['apartments']  = Apartment.query.join(Block).filter(Block.site_id.in_(site_ids)).count()
         stats['residents']   = Resident.query.join(Apartment).join(Block)\
-                                .filter(Block.site_id == site.id, Resident.is_active == True).count()
+                                .filter(Block.site_id.in_(site_ids), Resident.is_active == True).count()
         stats['unpaid_dues'] = Due.query.join(Apartment).join(Block)\
-                                .filter(Block.site_id == site.id, Due.is_paid == False).count()
+                                .filter(Block.site_id.in_(site_ids), Due.is_paid == False).count()
     return render_template('site_admin/dashboard.html', site=site, sites=sites, stats=stats,
                            today=date.today())
 
@@ -1355,8 +1357,9 @@ def sakin_kullanicilari():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
+    siteler = get_current_sites()
     site_tc_listesi = [r.tc_no for r in Resident.query.join(Apartment).join(Block)
-        .filter(Block.site_id == site.id, Resident.tc_no != None).all()]
+        .filter(Block.site_id.in_([s.id for s in siteler]), Resident.tc_no != None).all()]
     kullanicilar = User.query.filter(User.username.in_(site_tc_listesi), User.role == 'resident').all()
     sonuclar = []
     for u in kullanicilar:
@@ -1483,7 +1486,9 @@ def sakin_mesajlari():
     if not site:
         return redirect(url_for('site_admin.dashboard'))
     durum = request.args.get('durum', 'acik')
-    q = ResidentMessage.query.filter_by(site_id=site.id)
+    siteler = get_current_sites()
+    site_ids = [s.id for s in siteler]
+    q = ResidentMessage.query.filter(ResidentMessage.site_id.in_(site_ids))
     if durum == 'acik':
         q = q.filter_by(is_closed=False)
     elif durum == 'kapali':
@@ -1541,6 +1546,17 @@ def superadmine_mesaj():
             return redirect(url_for('site_admin.dashboard'))
     mesajlar = AdminMessage.query.filter_by(sender_id=current_user.id).order_by(AdminMessage.created_at.desc()).all()
     return render_template('site_admin/superadmine_mesaj.html', site=site, mesajlar=mesajlar)
+
+@site_admin_bp.route('/superadmine-mesaj/<int:mid>/okundu', methods=['POST'])
+@login_required
+@site_admin_required
+def mesaj_cevap_okundu(mid):
+    from app.models.models import AdminMessage
+    m = AdminMessage.query.get_or_404(mid)
+    m.reply_read = True
+    db.session.commit()
+    return redirect(url_for('site_admin.superadmine_mesaj'))
+
 
 
 @site_admin_bp.route('/yonetici-evraklar')
