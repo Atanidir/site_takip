@@ -393,7 +393,7 @@ def admin_evrak_yukle():
             flash('Bu dosya türüne izin verilmiyor.', 'danger')
             return redirect(request.url)
 
-        upload_dir = os.path.join('/home/probissi/site_takip/uploads/admin', str(target_user_id))
+        upload_dir = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/admin', str(target_user_id))
         os.makedirs(upload_dir, exist_ok=True)
         benzersiz_ad = f"{uuid.uuid4().hex}{ext}"
         dosya_yolu   = os.path.join(upload_dir, benzersiz_ad)
@@ -425,7 +425,7 @@ def admin_evrak_indir(doc_id):
     from flask import send_from_directory
     import os
     doc = AdminDocument.query.get_or_404(doc_id)
-    upload_dir = os.path.join('/home/probissi/site_takip/uploads/admin', str(doc.target_user_id))
+    upload_dir = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/admin', str(doc.target_user_id))
     return send_from_directory(upload_dir, doc.filename,
                                as_attachment=True, download_name=doc.original_name)
 
@@ -437,7 +437,7 @@ def admin_evrak_sil(doc_id):
     from app.models.models import AdminDocument
     import os
     doc = AdminDocument.query.get_or_404(doc_id)
-    dosya_yolu = os.path.join('/home/probissi/site_takip/uploads/admin',
+    dosya_yolu = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/admin',
                               str(doc.target_user_id), doc.filename)
     if os.path.exists(dosya_yolu):
         os.remove(dosya_yolu)

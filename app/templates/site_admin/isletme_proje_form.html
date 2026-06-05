@@ -30,17 +30,20 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kapsam</label>
                     <select name="block_id" id="block_id" onchange="daireSayisiGetir(this.value)"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Tüm Site</option>
+                        <option value="" data-daire="{{ tum_site_daire_sayisi }}">Tüm Site ({{ tum_site_daire_sayisi }} daire)</option>
                         {% for blok in bloklar %}
-                        <option value="{{ blok.id }}" data-daire="{{ blok.apartments.count() }}">{{ blok.name }} ({{ blok.apartments.count() }} daire)</option>
+                        <option value="{{ blok.id }}" data-daire="{{ blok_daire_sayilari[blok.id] }}">
+                            {{ blok.name }} ({{ blok_daire_sayilari[blok.id] }} daire)
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Daire Sayısı</label>
                     <input type="number" name="daire_sayisi" required min="1" id="daire_sayisi"
+                           value="{{ tum_site_daire_sayisi }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-400 mt-1">Blok seçilince otomatik dolar.</p>
+                    <p class="text-xs text-gray-400 mt-1">Görevli daireleri hariç hesaplanmıştır.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Rezerv Fon Oranı</label>
@@ -148,18 +151,10 @@
 
 {% block extra_js %}
 <script>
-// Blok seçilince daire sayısını otomatik doldur
 function daireSayisiGetir(blockId) {
-    if (!blockId) {
-        // Tüm site seçildi — tüm daireleri topla
-        const opts = document.querySelectorAll('#block_id option[data-daire]');
-        let toplam = 0;
-        opts.forEach(o => toplam += parseInt(o.dataset.daire) || 0);
-        document.getElementById('daire_sayisi').value = toplam;
-    } else {
-        const opt = document.querySelector(`#block_id option[value="${blockId}"]`);
-        if (opt) document.getElementById('daire_sayisi').value = opt.dataset.daire || '';
-    }
+    const sel = document.getElementById('block_id');
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('daire_sayisi').value = opt.dataset.daire || 0;
     toplamHesapla();
 }
 
@@ -207,8 +202,5 @@ function kalemSil(btn) {
 }
 
 document.getElementById('daire_sayisi').addEventListener('input', toplamHesapla);
-
-// Sayfa yüklenince tüm site daire sayısını hesapla
-window.addEventListener('load', () => daireSayisiGetir(''));
 </script>
 {% endblock %}

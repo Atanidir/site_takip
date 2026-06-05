@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(0, '/home/probissi/site_takip')
+sys.path.insert(0, '/var/www/probissi/data/www/probissite.com.tr/site_takip')
 
 from app import create_app, db
 from app.models.models import Announcement, Resident, Apartment, Block

@@ -27,7 +27,6 @@ def get_current_sites():
     return current_user.managed_sites.order_by(Site.name).all()
 
 
-
 def iban_dogrula(iban):
     """Türkiye IBAN formatını doğrular: TR + 24 rakam"""
     if not iban:
@@ -173,37 +172,24 @@ def new_site():
 @site_admin_required
 def delete_site(sid):
     site = Site.query.get_or_404(sid)
-
-    # Kullanıcının bu siteye yetkisi var mı
     if site not in current_user.managed_sites.all():
         flash('Bu siteyi silme yetkiniz yok.', 'danger')
         return redirect(url_for('site_admin.dashboard'))
-
-    # Cascade silme — bağlı tüm veriler
     for blk in Block.query.filter_by(site_id=sid).all():
         for apt in Apartment.query.filter_by(block_id=blk.id).all():
             Due.query.filter_by(apartment_id=apt.id).delete()
             Resident.query.filter_by(apartment_id=apt.id).delete()
             db.session.delete(apt)
-        # Bloğa ait giderleri sil
         Expense.query.filter_by(block_id=blk.id).delete()
         db.session.delete(blk)
-
-    # Siteye ait giderleri sil
     Expense.query.filter_by(site_id=sid).delete()
     Notification.query.filter_by(user_id=current_user.id).delete()
-
-    # Site-admin ilişkisini temizle
     from sqlalchemy import text
     db.session.execute(text('DELETE FROM site_admins WHERE site_id = :sid'), {'sid': sid})
-
     db.session.delete(site)
     db.session.commit()
-
-    # Aktif site güncelle
     if session.get('active_site_id') == sid:
         session.pop('active_site_id', None)
-
     flash('Site ve tüm bağlı veriler silindi.', 'success')
     return redirect(url_for('site_admin.dashboard'))
 
@@ -225,7 +211,6 @@ def blocks():
 @site_admin_required
 def delete_block(bid):
     blk = Block.query.get_or_404(bid)
-    site = get_active_site()
     for apt in Apartment.query.filter_by(block_id=bid).all():
         Due.query.filter_by(apartment_id=apt.id).delete()
         Resident.query.filter_by(apartment_id=apt.id).delete()
@@ -248,11 +233,6 @@ def delete_apartment(aid):
     db.session.commit()
     flash('Daire ve tüm bağlı veriler silindi.', 'success')
     return redirect(url_for('site_admin.apartments', bid=blk.id))
-    site = get_active_site()
-    if not site:
-        flash('Önce site oluşturun.', 'warning')
-        return redirect(url_for('site_admin.new_site'))
-    return render_template('site_admin/blocks.html', site=site, blocks=site.blocks.all())
 
 
 @site_admin_bp.route('/blocks/new', methods=['GET', 'POST'])
@@ -415,9 +395,7 @@ def residents(aid):
 def new_resident(aid):
     site = get_active_site()
     apt  = Apartment.query.get_or_404(aid)
-    # URL'den tip bilgisi al (kiracı ekle butonundan geliyorsa)
     default_type = request.args.get('type', 'owner')
-    show_tenant_dialog = False
 
     if request.method == 'POST':
         tc_no = request.form.get('tc_no', '').strip()
@@ -428,16 +406,12 @@ def new_resident(aid):
         email = request.form.get('email')
         u = User.query.filter_by(email=email).first() if email else None
         resident_type = request.form.get('resident_type')
-        # Mükerrer kayıt kontrolü — aynı TC + aynı daire
         if tc_no:
-            mevcut = Resident.query.filter_by(
-                tc_no=tc_no, apartment_id=aid, is_active=True
-            ).first()
+            mevcut = Resident.query.filter_by(tc_no=tc_no, apartment_id=aid, is_active=True).first()
             if mevcut:
                 flash(f'Bu TC kimlik numarası ({tc_no}) zaten bu dairede aktif sakin olarak kayıtlı!', 'danger')
                 return render_template('site_admin/resident_form.html',
-                                       site=site, apartment=apt, resident=None,
-                                       default_type=default_type)
+                                       site=site, apartment=apt, resident=None, default_type=default_type)
 
         db.session.add(Resident(
             apartment_id=aid, first_name=request.form.get('first_name'),
@@ -450,52 +424,36 @@ def new_resident(aid):
         ))
         db.session.commit()
 
-        # TC varsa otomatik kullanıcı oluştur veya mevcut kullanıcıya bağla
         if tc_no:
             mevcut_user = User.query.filter_by(username=tc_no).first()
             if mevcut_user:
-                # Kullanıcı zaten var, sadece sakin kaydına bağla
-                son_sakin = Resident.query.filter_by(
-                    apartment_id=aid, is_active=True
-                ).order_by(Resident.id.desc()).first()
+                son_sakin = Resident.query.filter_by(apartment_id=aid, is_active=True).order_by(Resident.id.desc()).first()
                 if son_sakin:
                     son_sakin.user_id = mevcut_user.id
                 db.session.commit()
             else:
-                # Yeni kullanıcı oluştur
                 email_to_use = email if email and not User.query.filter_by(email=email).first() else f'{tc_no}@siteaidat.local'
                 yeni_user = User(
-                    username  = tc_no,
-                    email     = email_to_use,
-                    full_name = f"{request.form.get('first_name')} {request.form.get('last_name')}",
-                    phone     = request.form.get('phone'),
-                    role      = 'resident',
-                    is_active = True
+                    username=tc_no, email=email_to_use,
+                    full_name=f"{request.form.get('first_name')} {request.form.get('last_name')}",
+                    phone=request.form.get('phone'), role='resident', is_active=True
                 )
                 yeni_user.set_password('')
                 db.session.add(yeni_user)
                 db.session.flush()
-                son_sakin = Resident.query.filter_by(
-                    apartment_id=aid, is_active=True
-                ).order_by(Resident.id.desc()).first()
+                son_sakin = Resident.query.filter_by(apartment_id=aid, is_active=True).order_by(Resident.id.desc()).first()
                 if son_sakin:
                     son_sakin.user_id = yeni_user.id
                 db.session.commit()
         flash('Sakin eklendi.', 'success')
 
-        # Mülk sahibi kaydedildiyse kiracı durumunu kontrol et
         if resident_type == 'owner':
-            aktif_kiraci = Resident.query.filter_by(
-                apartment_id=aid, resident_type='tenant', is_active=True
-            ).first()
+            aktif_kiraci = Resident.query.filter_by(apartment_id=aid, resident_type='tenant', is_active=True).first()
             if aktif_kiraci:
-                # Zaten kiracı var, çıktı mı diye sor
                 return render_template('site_admin/residents.html', site=site, apartment=apt,
                                        residents=Resident.query.filter_by(apartment_id=aid).order_by(Resident.move_in_date.desc()).all(),
-                                       show_existing_tenant_dialog=True,
-                                       existing_tenant=aktif_kiraci)
+                                       show_existing_tenant_dialog=True, existing_tenant=aktif_kiraci)
             else:
-                # Kiracı yok, eklensin mi diye sor
                 return render_template('site_admin/residents.html', site=site, apartment=apt,
                                        residents=Resident.query.filter_by(apartment_id=aid).order_by(Resident.move_in_date.desc()).all(),
                                        show_tenant_dialog=True)
@@ -518,8 +476,8 @@ def edit_resident(rid):
             flash('Geçersiz TC Kimlik No girdiniz.', 'danger')
             return render_template('site_admin/resident_form.html', site=site, apartment=apt, resident=res, default_type=res.resident_type)
 
-        eski_tip   = res.resident_type
-        move_out   = _parse_date(request.form.get('move_out_date'))
+        eski_tip = res.resident_type
+        move_out = _parse_date(request.form.get('move_out_date'))
 
         res.first_name    = request.form.get('first_name')
         res.last_name     = request.form.get('last_name')
@@ -532,18 +490,13 @@ def edit_resident(rid):
         res.move_out_date = move_out
         res.notes         = request.form.get('notes')
 
-        # Çıkış tarihi girilmişse otomatik pasif yap
         if move_out:
             res.is_active = False
-            # Bağlı kullanıcıyı da pasif yap
             if res.tc_no:
                 kullanici = User.query.filter_by(username=res.tc_no, role='resident').first()
                 if kullanici:
                     kullanici.is_active = False
-            # Ödenmemiş aidat var mı kontrol et
-            odenmemis = Due.query.filter_by(
-                resident_id=res.id, is_paid=False
-            ).count()
+            odenmemis = Due.query.filter_by(resident_id=res.id, is_paid=False).count()
             if odenmemis > 0:
                 flash(f'Sakin pasife alındı ancak {odenmemis} adet ödenmemiş aidatı bulunmaktadır!', 'warning')
             else:
@@ -554,7 +507,6 @@ def edit_resident(rid):
 
         db.session.commit()
 
-        # Mülk sahibi çıkış yaptıysa yeni sahip dialog göster
         show_owner_dialog = (eski_tip == 'owner' and move_out is not None and not res.is_active)
         if show_owner_dialog:
             return render_template('site_admin/residents.html', site=site, apartment=apt,
@@ -580,8 +532,7 @@ def expense_categories():
 def new_expense_category():
     site = get_active_site()
     if request.method == 'POST':
-        db.session.add(ExpenseCategory(name=request.form.get('name'),
-                                       description=request.form.get('description')))
+        db.session.add(ExpenseCategory(name=request.form.get('name'), description=request.form.get('description')))
         db.session.commit()
         flash('Kategori eklendi.', 'success')
         return redirect(url_for('site_admin.expense_categories'))
@@ -596,8 +547,7 @@ def new_expense_type():
     cats = ExpenseCategory.query.all()
     if request.method == 'POST':
         db.session.add(ExpenseType(category_id=int(request.form.get('category_id')),
-                                   name=request.form.get('name'),
-                                   description=request.form.get('description')))
+                                   name=request.form.get('name'), description=request.form.get('description')))
         db.session.commit()
         flash('Gider türü eklendi.', 'success')
         return redirect(url_for('site_admin.expense_categories'))
@@ -615,8 +565,7 @@ def expenses():
     exp_list = Expense.query.filter_by(site_id=site.id, period_year=year, period_month=month)\
                 .order_by(Expense.expense_date.desc()).all() if site else []
     total = sum(float(e.amount) for e in exp_list)
-    return render_template('site_admin/expenses.html', site=site,
-                           expenses=exp_list, total=total, year=year, month=month)
+    return render_template('site_admin/expenses.html', site=site, expenses=exp_list, total=total, year=year, month=month)
 
 
 @site_admin_bp.route('/expenses/new', methods=['GET', 'POST'])
@@ -661,8 +610,6 @@ def dues():
     site_id  = request.args.get('site_id', type=int)
     blok_id  = request.args.get('blok_id', type=int)
 
-    # Kullanıcının yönettiği tüm siteler
-    from app.models.models import Site as SiteModel
     yonetilen_siteler = Site.query.join(
         db.Table('site_admins', db.metadata),
         (db.Table('site_admins', db.metadata).c.site_id == Site.id)
@@ -684,7 +631,6 @@ def dues():
     dues_list       = q.filter(Due.due_type == 'normal').order_by(Block.name, Apartment.number).all()
     yakit_dues_list = q.filter(Due.due_type == 'yakit').order_by(Block.name, Apartment.number).all()
 
-    # Geçmiş dönemlerden ödenmemiş yakıt borçlarını da ekle
     gecmis_yakit_q = Due.query.join(Apartment).join(Block)
     if aktif_site_id:
         gecmis_yakit_q = gecmis_yakit_q.filter(Block.site_id == aktif_site_id)
@@ -694,22 +640,15 @@ def dues():
         gecmis_yakit_q = gecmis_yakit_q.filter(Block.id == blok_id)
 
     gecmis_yakit = gecmis_yakit_q.filter(
-        Due.due_type == 'yakit',
-        Due.is_paid == False,
-        db.or_(
-            Due.period_year < year,
-            db.and_(Due.period_year == year, Due.period_month < month)
-        )
+        Due.due_type == 'yakit', Due.is_paid == False,
+        db.or_(Due.period_year < year, db.and_(Due.period_year == year, Due.period_month < month))
     ).order_by(Due.period_year, Due.period_month, Block.name, Apartment.number).all()
 
-    # Geçmiş borçları listeye ekle (tekrar ekleme)
     mevcut_ids = {d.id for d in yakit_dues_list}
     for d in gecmis_yakit:
         if d.id not in mevcut_ids:
             yakit_dues_list.append(d)
-    tum_dues        = dues_list + yakit_dues_list
 
-    # Filtre için bloklar
     bloklar = Block.query.filter_by(site_id=aktif_site_id).order_by(Block.name).all() if aktif_site_id else []
 
     return render_template('site_admin/dues.html', site=site,
@@ -726,20 +665,24 @@ def generate_dues():
     site = get_active_site()
     now  = datetime.now()
     if request.method == 'POST':
-        start_date    = _parse_date(request.form.get('start_date'))
-        end_date      = _parse_date(request.form.get('end_date'))
-        due_date      = _parse_date(request.form.get('due_date'))
-        yakit_due_date= _parse_date(request.form.get('yakit_due_date'))
-        year          = int(request.form.get('year'))
-        month         = int(request.form.get('month'))
-        demirbas_top  = float(request.form.get('demirbas_toplam', 0))
-        normal_top    = float(request.form.get('normal_toplam', 0))
-        yakit_top     = float(request.form.get('yakit_toplam', 0))
+        start_date     = _parse_date(request.form.get('start_date'))
+        end_date       = _parse_date(request.form.get('end_date'))
+        due_date       = _parse_date(request.form.get('due_date'))
+        yakit_due_date = _parse_date(request.form.get('yakit_due_date'))
+        year           = int(request.form.get('year'))
+        month          = int(request.form.get('month'))
+        demirbas_top   = float(request.form.get('demirbas_toplam', 0))
+        normal_top     = float(request.form.get('normal_toplam', 0))
+        yakit_top      = float(request.form.get('yakit_toplam', 0))
 
-        # Toplam daire sayısı
+        # Tüm daireleri topla (görevli muaf olanları hariç)
         tum_daireler = []
         for blk in site.blocks.all():
-            tum_daireler.extend(blk.apartments.all())
+            for apt in blk.apartments.all():
+                if not apt.gorevli_muaf:
+                    tum_daireler.append(apt)
+
+        daire_sayisi = len(tum_daireler)
 
         # İşletme projesinden geliyorsa proje daire sayısını kullan
         from app.models.models import IsletmeProje
@@ -749,7 +692,8 @@ def generate_dues():
             if proje:
                 daire_sayisi = proje.daire_sayisi
                 if proje.block_id:
-                    tum_daireler = list(proje.block.apartments.all())
+                    tum_daireler = [apt for apt in proje.block.apartments.all() if not apt.gorevli_muaf]
+
         if daire_sayisi == 0:
             flash('Sistemde daire bulunamadı.', 'danger')
             return redirect(url_for('site_admin.generate_dues'))
@@ -760,31 +704,29 @@ def generate_dues():
 
         count = 0
         for apt in tum_daireler:
-            # Muafiyet kontrolleri
+            # Görevli muaf kontrol (zaten filtrelendi ama double check)
+            if apt.gorevli_muaf:
+                continue
+
             normal_muaf   = apt.aidat_muaf
             demirbas_muaf = apt.demirbas_muaf
             yakit_muaf    = apt.yakit_muaf
 
-            # Tüm muafiyetler varsa atla
             if normal_muaf and demirbas_muaf and yakit_muaf:
                 continue
 
-            # Mevcut aidat varsa atla
             if Due.query.filter_by(apartment_id=apt.id, period_year=year, period_month=month).first():
                 continue
 
-            # Aktif sakin bilgisi
             aktif_sakin = Resident.query.filter_by(apartment_id=apt.id, is_active=True).first()
             kiraci = Resident.query.filter_by(apartment_id=apt.id, is_active=True, resident_type='tenant').first()
             sahip  = Resident.query.filter_by(apartment_id=apt.id, resident_type='owner').order_by(Resident.move_in_date.desc()).first()
 
-            # Muafiyete göre tutarları ayarla
             apt_demirbas = 0 if demirbas_muaf else daire_demirbas
             apt_normal   = 0 if normal_muaf else daire_normal
             apt_yakit    = 0 if yakit_muaf else daire_yakit
 
             if aktif_sakin is None:
-                # Boş daire
                 if apt_demirbas + apt_normal > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=sahip.id if sahip else None,
@@ -805,9 +747,7 @@ def generate_dues():
                         due_date=yakit_due_date, is_paid=False, created_by=current_user.id
                     ))
                 count += 1
-
             elif kiraci:
-                # Kiracıya → normal pay
                 if apt_normal > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=kiraci.id,
@@ -817,7 +757,6 @@ def generate_dues():
                         yakit_amount=0, due_type='normal',
                         due_date=due_date, is_paid=False, created_by=current_user.id
                     ))
-                # Kiracıya yakıt
                 if apt_yakit > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=kiraci.id,
@@ -827,7 +766,6 @@ def generate_dues():
                         yakit_amount=apt_yakit, due_type='yakit',
                         due_date=yakit_due_date, is_paid=False, created_by=current_user.id
                     ))
-                # Mülk sahibine → demirbaş pay
                 if apt_demirbas > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=sahip.id if sahip else None,
@@ -838,9 +776,7 @@ def generate_dues():
                         due_date=due_date, is_paid=False, created_by=current_user.id
                     ))
                 count += 2
-
             else:
-                # Mülk sahibi oturuyor
                 if apt_demirbas + apt_normal > 0:
                     db.session.add(Due(
                         apartment_id=apt.id, resident_id=aktif_sakin.id,
@@ -865,6 +801,7 @@ def generate_dues():
         db.session.commit()
         flash(f'{count} aidat kaydı oluşturuldu.', 'success')
         return redirect(url_for('site_admin.dues', year=year, month=month))
+
     from app.models.models import IsletmeProje
     isletme_projeler = IsletmeProje.query.filter_by(site_id=site.id).order_by(IsletmeProje.yil.desc()).all()
     return render_template('site_admin/generate_dues.html', site=site, year=now.year, month=now.month, isletme_projeler=isletme_projeler)
@@ -877,31 +814,23 @@ def api_gider_hesapla():
     site_id = request.args.get('site_id', type=int)
     start   = request.args.get('start')
     end     = request.args.get('end')
-
     site = Site.query.get_or_404(site_id)
-
-    # Gider kategorilerini al
     cats = ExpenseCategory.query.all()
     demirbas_ids = [c.id for c in cats if 'demirbas' in c.name.lower().replace('ş','s').replace('â','a') or 'fixture' in c.name.lower()]
     yakit_ids    = [c.id for c in cats if 'yakit' in c.name.lower().replace('ı','i').replace('â','a') or 'yakıt' in c.name.lower()]
     normal_ids   = [c.id for c in cats if c.id not in demirbas_ids and c.id not in yakit_ids]
-
-    # Tarih aralığındaki giderleri topla
     expenses = Expense.query.filter(
         Expense.site_id == site_id,
         Expense.expense_date >= start,
         Expense.expense_date <= end
     ).all()
-
     demirbas_top = sum(float(e.amount) for e in expenses if e.category_id in demirbas_ids)
     normal_top   = sum(float(e.amount) for e in expenses if e.category_id in normal_ids)
     yakit_top    = sum(float(e.amount) for e in expenses if e.category_id in yakit_ids)
-
-    # Toplam daire sayısı
-    daire_sayisi = sum(b.apartments.count() for b in site.blocks)
+    # Görevli muaf daireler hariç
+    daire_sayisi = sum(b.apartments.filter_by(gorevli_muaf=False).count() for b in site.blocks)
     daire_demirbas = round(demirbas_top / daire_sayisi, 2) if daire_sayisi > 0 else 0
     daire_yakit    = round(yakit_top    / daire_sayisi, 2) if daire_sayisi > 0 else 0
-
     return jsonify({
         'demirbas'      : demirbas_top,
         'normal'        : normal_top,
@@ -920,12 +849,9 @@ def pay_due(did):
     site = get_active_site()
     paid_date    = _parse_date(request.form.get('paid_date')) or date.today()
     payment_note = request.form.get('payment_note', '')
-
     due.is_paid      = True
     due.paid_date    = paid_date
     due.payment_note = payment_note
-
-    # Gecikme hesabı
     if due.due_date and paid_date > due.due_date:
         gun = (paid_date - due.due_date).days
         due.gecikme_gun = gun
@@ -933,7 +859,7 @@ def pay_due(did):
         if oran > 0:
             if site.gecikme_turu == 'gunluk':
                 due.gecikme_bedel = round(float(due.amount) * (oran / 100) * gun, 2)
-            else:  # aylık
+            else:
                 ay = gun / 30
                 due.gecikme_bedel = round(float(due.amount) * (oran / 100) * ay, 2)
         else:
@@ -941,7 +867,6 @@ def pay_due(did):
     else:
         due.gecikme_gun   = 0
         due.gecikme_bedel = 0
-
     db.session.commit()
     flash('Ödeme kaydedildi.', 'success')
     return redirect(request.referrer or url_for('site_admin.dues'))
@@ -983,10 +908,7 @@ def api_iller():
 @login_required
 @site_admin_required
 def api_ilceler(il_id):
-    rows = db.session.execute(
-        text("SELECT ilceid, ilceadi FROM ilce WHERE ilid = :ilid ORDER BY ilceadi"),
-        {'ilid': il_id}
-    ).fetchall()
+    rows = db.session.execute(text("SELECT ilceid, ilceadi FROM ilce WHERE ilid = :ilid ORDER BY ilceadi"), {'ilid': il_id}).fetchall()
     return jsonify([{'id': r[0], 'ad': r[1]} for r in rows])
 
 
@@ -994,10 +916,7 @@ def api_ilceler(il_id):
 @login_required
 @site_admin_required
 def api_mahalleler(ilce_id):
-    rows = db.session.execute(
-        text("SELECT mahalleid, mahalleadi FROM mahalle WHERE ilceid = :ilceid ORDER BY mahalleadi"),
-        {'ilceid': ilce_id}
-    ).fetchall()
+    rows = db.session.execute(text("SELECT mahalleid, mahalleadi FROM mahalle WHERE ilceid = :ilceid ORDER BY mahalleadi"), {'ilceid': ilce_id}).fetchall()
     return jsonify([{'id': r[0], 'ad': r[1]} for r in rows])
 
 
@@ -1077,33 +996,26 @@ def delete_dues():
     site  = get_active_site()
     sites = get_current_sites()
     now   = datetime.now()
-
     if request.method == 'POST':
         site_id  = int(request.form.get('site_id'))
         block_id = request.form.get('block_id') or None
         year     = int(request.form.get('year'))
         month    = int(request.form.get('month'))
-
         q = Due.query.join(Apartment).join(Block).filter(
-            Block.site_id == site_id,
-            Due.period_year == year,
-            Due.period_month == month
+            Block.site_id == site_id, Due.period_year == year, Due.period_month == month
         )
         if block_id:
             q = q.filter(Block.id == int(block_id))
-
         count = q.count()
         due_ids = [d.id for d in q.all()]
         Due.query.filter(Due.id.in_(due_ids)).delete(synchronize_session='fetch')
         db.session.commit()
         flash(f'{count} aidat kaydı silindi.', 'success')
         return redirect(url_for('site_admin.dues', year=year, month=month))
-
-    return render_template('site_admin/delete_dues.html', site=site, sites=sites,
-                           year=now.year, month=now.month)
+    return render_template('site_admin/delete_dues.html', site=site, sites=sites, year=now.year, month=now.month)
 
 
-# ── Raporlama Ana Sayfa ───────────────────────────────────────────────────
+# ── Raporlama ─────────────────────────────────────────────────────────────
 @site_admin_bp.route('/reports')
 @login_required
 @site_admin_required
@@ -1111,7 +1023,6 @@ def reports():
     return redirect(url_for('site_admin.report_aidat'))
 
 
-# ── Aidat Raporu ──────────────────────────────────────────────────────────
 @site_admin_bp.route('/reports/aidat')
 @login_required
 @site_admin_required
@@ -1120,17 +1031,11 @@ def report_aidat():
     now   = datetime.now()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
     year   = request.args.get('year',   now.year,  type=int)
     month  = request.args.get('month',  now.month, type=int)
     blok_id = request.args.get('blok_id', '', type=str)
-    durum  = request.args.get('durum',  'tumu')  # tumu | odenen | bekleyen | geciken
-
-    q = Due.query.join(Apartment).join(Block).filter(
-        Block.site_id == site.id,
-        Due.period_year == year,
-        Due.period_month == month
-    )
+    durum  = request.args.get('durum',  'tumu')
+    q = Due.query.join(Apartment).join(Block).filter(Block.site_id == site.id, Due.period_year == year, Due.period_month == month)
     if blok_id:
         q = q.filter(Block.id == int(blok_id))
     if durum == 'odenen':
@@ -1139,23 +1044,18 @@ def report_aidat():
         q = q.filter(Due.is_paid == False)
     elif durum == 'geciken':
         q = q.filter(Due.is_paid == False, Due.due_date < date.today())
-
     dues = q.order_by(Block.name, Apartment.number).all()
-
-    toplam         = sum(float(d.amount) for d in dues)
-    odenen         = sum(float(d.amount) for d in dues if d.is_paid)
-    bekleyen       = sum(float(d.amount) for d in dues if not d.is_paid)
-    gecikme_top    = sum(float(d.gecikme_bedel or 0) for d in dues)
-    blocks         = site.blocks.order_by(Block.name).all()
-
+    toplam      = sum(float(d.amount) for d in dues)
+    odenen      = sum(float(d.amount) for d in dues if d.is_paid)
+    bekleyen    = sum(float(d.amount) for d in dues if not d.is_paid)
+    gecikme_top = sum(float(d.gecikme_bedel or 0) for d in dues)
+    blocks      = site.blocks.order_by(Block.name).all()
     return render_template('site_admin/report_aidat.html',
         site=site, year=year, month=month, blok_id=blok_id, durum=durum,
         dues=dues, toplam=toplam, odenen=odenen, bekleyen=bekleyen,
-        gecikme_top=gecikme_top, blocks=blocks, today=date.today()
-    )
+        gecikme_top=gecikme_top, blocks=blocks, today=date.today())
 
 
-# ── Gider Raporu ──────────────────────────────────────────────────────────
 @site_admin_bp.route('/reports/gider')
 @login_required
 @site_admin_required
@@ -1164,13 +1064,11 @@ def report_gider():
     now   = datetime.now()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
     year     = request.args.get('year',     now.year,  type=int)
     month    = request.args.get('month',    now.month, type=int)
     blok_id  = request.args.get('blok_id', '',        type=str)
     cat_id   = request.args.get('cat_id',  '',        type=str)
     type_id  = request.args.get('type_id', '',        type=str)
-
     q = Expense.query.filter_by(site_id=site.id, period_year=year, period_month=month)
     if blok_id:
         q = q.filter(Expense.block_id == int(blok_id))
@@ -1178,10 +1076,8 @@ def report_gider():
         q = q.filter(Expense.category_id == int(cat_id))
     if type_id:
         q = q.filter(Expense.type_id == int(type_id))
-
     expenses = q.order_by(Expense.expense_date.desc()).all()
     toplam   = sum(float(e.amount) for e in expenses)
-
     from collections import defaultdict
     kategori_gider = defaultdict(float)
     blok_gider     = defaultdict(float)
@@ -1189,23 +1085,15 @@ def report_gider():
         kategori_gider[e.category.name] += float(e.amount)
         blok_adi = Block.query.get(e.block_id).name if e.block_id else 'Tüm Site'
         blok_gider[blok_adi] += float(e.amount)
-
     blocks     = site.blocks.order_by(Block.name).all()
     categories = ExpenseCategory.query.all()
-    exp_types  = ExpenseType.query.filter(
-        ExpenseType.category_id.in_([c.id for c in categories])
-    ).all() if cat_id else []
-
+    exp_types  = ExpenseType.query.filter(ExpenseType.category_id.in_([c.id for c in categories])).all() if cat_id else []
     return render_template('site_admin/report_gider.html',
-        site=site, year=year, month=month, blok_id=blok_id,
-        cat_id=cat_id, type_id=type_id,
-        expenses=expenses, toplam=toplam,
-        kategori_gider=dict(kategori_gider), blok_gider=dict(blok_gider),
-        blocks=blocks, categories=categories, exp_types=exp_types
-    )
+        site=site, year=year, month=month, blok_id=blok_id, cat_id=cat_id, type_id=type_id,
+        expenses=expenses, toplam=toplam, kategori_gider=dict(kategori_gider), blok_gider=dict(blok_gider),
+        blocks=blocks, categories=categories, exp_types=exp_types)
 
 
-# ── Sakin Raporu ──────────────────────────────────────────────────────────
 @site_admin_bp.route('/reports/sakin')
 @login_required
 @site_admin_required
@@ -1213,39 +1101,24 @@ def report_sakin():
     site  = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
     blok_id = request.args.get('blok_id', '', type=str)
-    durum   = request.args.get('durum',   'tumu')  # tumu | sahip | kiraci | bos
-
+    durum   = request.args.get('durum',   'tumu')
     sakin_listesi = []
     blok_q = site.blocks.order_by(Block.name)
     if blok_id:
         blok_q = blok_q.filter(Block.id == int(blok_id))
-
     for blk in blok_q.all():
         for apt in blk.apartments.order_by(Apartment.number).all():
             aktif  = Resident.query.filter_by(apartment_id=apt.id, is_active=True).all()
             sahip  = next((r for r in aktif if r.resident_type == 'owner'),  None)
             kiraci = next((r for r in aktif if r.resident_type == 'tenant'), None)
-
             if durum == 'sahip'  and not (sahip and not kiraci): continue
             if durum == 'kiraci' and not kiraci:                  continue
             if durum == 'bos'    and (sahip or kiraci):           continue
-
-            sakin_listesi.append({
-                'blok'  : blk.name,
-                'daire' : apt.number,
-                'apt_id': apt.id,
-                'sahip' : sahip,
-                'kiraci': kiraci,
-            })
-
+            sakin_listesi.append({'blok': blk.name, 'daire': apt.number, 'apt_id': apt.id, 'sahip': sahip, 'kiraci': kiraci})
     blocks = site.blocks.order_by(Block.name).all()
-
     return render_template('site_admin/report_sakin.html',
-        site=site, blok_id=blok_id, durum=durum,
-        sakin_listesi=sakin_listesi, blocks=blocks
-    )
+        site=site, blok_id=blok_id, durum=durum, sakin_listesi=sakin_listesi, blocks=blocks)
 
 
 # ── Site Ayarları ─────────────────────────────────────────────────────────
@@ -1257,22 +1130,19 @@ def settings():
     site = get_active_site()
     cfg  = SystemSettings.query.filter_by(scope='site', site_id=site.id).first() if site else None
     global_cfg = SystemSettings.query.filter_by(scope='global').first()
-
     if request.method == 'POST':
         if not cfg:
             cfg = SystemSettings(scope='site', site_id=site.id)
             db.session.add(cfg)
-
         cfg.smtp_host       = request.form.get('smtp_host')
         cfg.smtp_port       = int(request.form.get('smtp_port', 587))
         cfg.smtp_user       = request.form.get('smtp_user')
         cfg.smtp_from_name  = request.form.get('smtp_from_name')
-        cfg.smtp_from_email = request.form.get('smtp_user')  # Kullanıcı adı = gönderen
+        cfg.smtp_from_email = request.form.get('smtp_user')
         cfg.smtp_use_tls    = bool(request.form.get('smtp_use_tls'))
         cfg.mail_active     = bool(request.form.get('mail_active'))
         if request.form.get('smtp_pass'):
             cfg.smtp_pass   = request.form.get('smtp_pass')
-
         cfg.netgsm_user      = request.form.get('netgsm_user')
         cfg.netgsm_header    = request.form.get('netgsm_header')
         cfg.sms_active       = bool(request.form.get('sms_active'))
@@ -1281,8 +1151,6 @@ def settings():
         cfg.vatansms_api_key = request.form.get('vatansms_api_key')
         if request.form.get('netgsm_pass'):
             cfg.netgsm_pass = request.form.get('netgsm_pass')
-
-        # Ödeme
         cfg.odeme_active        = bool(request.form.get('odeme_active'))
         cfg.odeme_saglayici     = request.form.get('odeme_saglayici')
         cfg.iyzico_api_key      = request.form.get('iyzico_api_key') or cfg.iyzico_api_key
@@ -1297,29 +1165,22 @@ def settings():
             cfg.paytr_merchant_salt = request.form.get('paytr_merchant_salt')
         if request.form.get('stripe_secret_key'):
             cfg.stripe_secret_key = request.form.get('stripe_secret_key')
-
         db.session.commit()
         flash('Ayarlar kaydedildi.', 'success')
-
         if request.form.get('test_mail') and cfg.mail_active:
             from app.utils import send_mail
             test_to = request.form.get('test_email') or cfg.smtp_from_email
-            ok, msg = send_mail(test_to, 'Test Maili',
-                               f'<p>{site.name} sistemi mail testi başarılı!</p>')
+            ok, msg = send_mail(test_to, 'Test Maili', f'<p>{site.name} sistemi mail testi başarılı!</p>')
             flash(f'Mail test: {msg}', 'success' if ok else 'danger')
-
         if request.form.get('test_sms') and cfg.sms_active:
             from app.utils import send_sms
-            ok, msg = send_sms(request.form.get('test_phone', ''),
-                              'Site Aidat sistemi SMS testi başarılı!', site.id)
+            ok, msg = send_sms(request.form.get('test_phone', ''), 'Site Aidat sistemi SMS testi başarılı!', site.id)
             flash(f'SMS test: {msg}', 'success' if ok else 'danger')
-
         return redirect(url_for('site_admin.settings'))
-
     return render_template('site_admin/settings.html', cfg=cfg, global_cfg=global_cfg, site=site)
 
 
-# ── Tüm Sakinler Listesi ──────────────────────────────────────────────────
+# ── Tüm Sakinler ──────────────────────────────────────────────────────────
 @site_admin_bp.route('/all-residents')
 @login_required
 @site_admin_required
@@ -1327,21 +1188,13 @@ def all_residents():
     site    = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
     blok_id  = request.args.get('blok_id', '')
     site_id  = request.args.get('site_id', '')
     tur      = request.args.get('tur', 'tumu')
     durum    = request.args.get('durum', 'aktif')
     arama    = request.args.get('arama', '').strip()
-
-    # Kullanıcının yönettiği tüm siteler
-    from app.models.models import Site
     yonetilen_siteler = current_user.managed_sites.all() if hasattr(current_user, 'managed_sites') else [site]
-
-    q = Resident.query.join(Apartment).join(Block).filter(
-        Block.site_id.in_([s.id for s in yonetilen_siteler])
-    )
-
+    q = Resident.query.join(Apartment).join(Block).filter(Block.site_id.in_([s.id for s in yonetilen_siteler]))
     if site_id:
         q = q.filter(Block.site_id == int(site_id))
     if blok_id:
@@ -1353,23 +1206,15 @@ def all_residents():
     elif durum == 'pasif':
         q = q.filter(Resident.is_active == False)
     if arama:
-        q = q.filter(
-            db.or_(
-                Resident.first_name.ilike(f'%{arama}%'),
-                Resident.last_name.ilike(f'%{arama}%'),
-                Resident.tc_no.ilike(f'%{arama}%'),
-                Resident.phone.ilike(f'%{arama}%'),
-            )
-        )
-
+        q = q.filter(db.or_(
+            Resident.first_name.ilike(f'%{arama}%'), Resident.last_name.ilike(f'%{arama}%'),
+            Resident.tc_no.ilike(f'%{arama}%'), Resident.phone.ilike(f'%{arama}%'),
+        ))
     residents = q.order_by(Block.name, Apartment.number, Resident.is_active.desc()).all()
     blocks    = Block.query.filter(Block.site_id.in_([s.id for s in yonetilen_siteler])).order_by(Block.name).all()
-
     return render_template('site_admin/all_residents.html',
-        site=site, residents=residents, blocks=blocks,
-        yonetilen_siteler=yonetilen_siteler,
-        blok_id=blok_id, site_id=site_id, tur=tur, durum=durum, arama=arama
-    )
+        site=site, residents=residents, blocks=blocks, yonetilen_siteler=yonetilen_siteler,
+        blok_id=blok_id, site_id=site_id, tur=tur, durum=durum, arama=arama)
 
 
 # ── Bildirimler ───────────────────────────────────────────────────────────
@@ -1379,7 +1224,6 @@ def all_residents():
 def notifications():
     notifs = Notification.query.filter_by(user_id=current_user.id)\
                 .order_by(Notification.created_at.desc()).limit(50).all()
-    # Hepsini okundu yap
     for n in notifs:
         n.is_read = True
     db.session.commit()
@@ -1390,89 +1234,43 @@ def notifications():
 @login_required
 @site_admin_required
 def generate_notifications():
-    """Mevcut duruma göre bildirimleri oluştur."""
     from app.models.models import Notification
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
-    today    = date.today()
-    count    = 0
-
-    # ── Gecikmiş aidatlar ──
+    today = date.today()
+    count = 0
     geciken = Due.query.join(Apartment).join(Block).filter(
-        Block.site_id == site.id,
-        Due.is_paid   == False,
-        Due.due_date  < today
+        Block.site_id == site.id, Due.is_paid == False, Due.due_date < today
     ).all()
-
     if geciken:
-        # Aynı bildirim zaten var mı kontrol et (bugün oluşturulmuş)
-        mevcut = Notification.query.filter_by(
-            user_id    = current_user.id,
-            notif_type = 'danger',
-            title      = 'Gecikmiş Aidatlar'
-        ).filter(
-            Notification.created_at >= datetime.combine(today, datetime.min.time())
-        ).first()
+        mevcut = Notification.query.filter_by(user_id=current_user.id, notif_type='danger', title='Gecikmiş Aidatlar')\
+            .filter(Notification.created_at >= datetime.combine(today, datetime.min.time())).first()
         if not mevcut:
-            db.session.add(Notification(
-                user_id    = current_user.id,
-                title      = 'Gecikmiş Aidatlar',
-                message    = f'{len(geciken)} adet aidat vadesi geçmiş.',
-                link       = url_for('site_admin.dues'),
-                notif_type = 'danger'
-            ))
+            db.session.add(Notification(user_id=current_user.id, title='Gecikmiş Aidatlar',
+                message=f'{len(geciken)} adet aidat vadesi geçmiş.', link=url_for('site_admin.dues'), notif_type='danger'))
             count += 1
-
-    # ── 3 gün içinde vadesi dolacak aidatlar ──
     from datetime import timedelta
     yaklasan = Due.query.join(Apartment).join(Block).filter(
-        Block.site_id == site.id,
-        Due.is_paid   == False,
-        Due.due_date  >= today,
-        Due.due_date  <= today + timedelta(days=3)
+        Block.site_id == site.id, Due.is_paid == False, Due.due_date >= today, Due.due_date <= today + timedelta(days=3)
     ).all()
-
     if yaklasan:
-        mevcut = Notification.query.filter_by(
-            user_id    = current_user.id,
-            notif_type = 'warning',
-            title      = 'Yaklaşan Aidat Vadesi'
-        ).filter(
-            Notification.created_at >= datetime.combine(today, datetime.min.time())
-        ).first()
+        mevcut = Notification.query.filter_by(user_id=current_user.id, notif_type='warning', title='Yaklaşan Aidat Vadesi')\
+            .filter(Notification.created_at >= datetime.combine(today, datetime.min.time())).first()
         if not mevcut:
-            db.session.add(Notification(
-                user_id    = current_user.id,
-                title      = 'Yaklaşan Aidat Vadesi',
-                message    = f'{len(yaklasan)} aidatın vadesi 3 gün içinde dolacak.',
-                link       = url_for('site_admin.dues'),
-                notif_type = 'warning'
-            ))
+            db.session.add(Notification(user_id=current_user.id, title='Yaklaşan Aidat Vadesi',
+                message=f'{len(yaklasan)} aidatın vadesi 3 gün içinde dolacak.', link=url_for('site_admin.dues'), notif_type='warning'))
             count += 1
-
-    # ── Lisans süresi ──
     if current_user.license and current_user.license.valid_until:
         kalan = (current_user.license.valid_until - today).days
         if kalan <= 30:
-            mevcut = Notification.query.filter_by(
-                user_id    = current_user.id,
-                notif_type = 'warning' if kalan > 0 else 'danger',
-                title      = 'Lisans Uyarısı'
-            ).filter(
-                Notification.created_at >= datetime.combine(today, datetime.min.time())
-            ).first()
+            mevcut = Notification.query.filter_by(user_id=current_user.id, title='Lisans Uyarısı')\
+                .filter(Notification.created_at >= datetime.combine(today, datetime.min.time())).first()
             if not mevcut:
-                db.session.add(Notification(
-                    user_id    = current_user.id,
-                    title      = 'Lisans Uyarısı',
-                    message    = f'Lisansınız {"sona erdi" if kalan < 0 else f"{kalan} gün içinde dolacak"}.',
-                    link       = '#',
-                    notif_type = 'danger' if kalan < 0 else 'warning'
-                ))
+                db.session.add(Notification(user_id=current_user.id, title='Lisans Uyarısı',
+                    message=f'Lisansınız {"sona erdi" if kalan < 0 else f"{kalan} gün içinde dolacak"}.',
+                    link='#', notif_type='danger' if kalan < 0 else 'warning'))
                 count += 1
-
     db.session.commit()
     return redirect(url_for('site_admin.notifications'))
 
@@ -1491,88 +1289,47 @@ def mark_notification_read(nid):
 @login_required
 @site_admin_required
 def send_due_notifications():
-    """Sakinlere aidat vadesi yaklaşıyor/geçti bildirimi gönder."""
     from app.utils import send_mail, send_sms
     from datetime import timedelta
-
     site  = get_active_site()
     today = date.today()
-    sent_mail = 0
-    sent_sms  = 0
-    errors    = []
-
-    # 3 gün sonra vadesi dolacak ve bugün vadesi gelen aidatlar
+    sent_mail = 0; sent_sms = 0; errors = []
     dues = Due.query.join(Apartment).join(Block).filter(
-        Block.site_id == site.id,
-        Due.is_paid   == False,
-        Due.due_date  >= today,
-        Due.due_date  <= today + timedelta(days=3)
+        Block.site_id == site.id, Due.is_paid == False, Due.due_date >= today, Due.due_date <= today + timedelta(days=3)
     ).all()
-
-    # Gecikmiş aidatlar
     geciken = Due.query.join(Apartment).join(Block).filter(
-        Block.site_id == site.id,
-        Due.is_paid   == False,
-        Due.due_date  < today
+        Block.site_id == site.id, Due.is_paid == False, Due.due_date < today
     ).all()
-
     tum_dues = dues + geciken
-
     for due in tum_dues:
         res = due.resident
         if not res:
             continue
-
         gecikti = due.due_date and due.due_date < today
         kalan   = (due.due_date - today).days if due.due_date and not gecikti else 0
-
         if gecikti:
             konu = f'Gecikmiş Aidat Bildirimi — {site.name}'
             mesaj_kisa = f'{site.name} - {due.apartment.block.name} Daire {due.apartment.number}: {due.amount} ₺ tutarındaki aidatınız gecikmiştir.'
-            mesaj_html = f"""
-            <p>Sayın {res.full_name()},</p>
-            <p><strong>{site.name}</strong> sitesindeki <strong>{due.apartment.block.name} / Daire {due.apartment.number}</strong> için
-            <strong>{due.amount} ₺</strong> tutarındaki aidatınızın vadesi <strong>{due.due_date.strftime('%d.%m.%Y')}</strong> tarihinde geçmiştir.</p>
-            {f'<p>Gecikme bedeli: <strong>{due.gecikme_bedel} ₺</strong></p>' if due.gecikme_bedel and due.gecikme_bedel > 0 else ''}
-            {f'<p>Ödeme yapabileceğiniz IBAN: <strong>{site.iban}</strong> ({site.banka_adi})</p>' if site.iban else ''}
-            <p>Lütfen en kısa sürede ödemenizi yapınız.</p>
-            """
+            mesaj_html = f'<p>Sayın {res.full_name()},</p><p>{due.amount} ₺ tutarındaki aidatınızın vadesi {due.due_date.strftime("%d.%m.%Y")} tarihinde geçmiştir.</p>'
         else:
             konu = f'Aidat Vadesi Yaklaşıyor — {site.name}'
             mesaj_kisa = f'{site.name} - {due.apartment.block.name} Daire {due.apartment.number}: {due.amount} ₺ tutarındaki aidatınızın vadesi {kalan} gün içinde dolacak.'
-            mesaj_html = f"""
-            <p>Sayın {res.full_name()},</p>
-            <p><strong>{site.name}</strong> sitesindeki <strong>{due.apartment.block.name} / Daire {due.apartment.number}</strong> için
-            <strong>{due.amount} ₺</strong> tutarındaki aidatınızın vadesi <strong>{due.due_date.strftime('%d.%m.%Y')}</strong> tarihinde dolacaktır.</p>
-            {f'<p>Ödeme yapabileceğiniz IBAN: <strong>{site.iban}</strong> ({site.banka_adi})</p>' if site.iban else ''}
-            <p>Zamanında ödeme yaparak gecikme faizinden kaçınabilirsiniz.</p>
-            """
-
-        # Mail gönder
+            mesaj_html = f'<p>Sayın {res.full_name()},</p><p>{due.amount} ₺ tutarındaki aidatınızın vadesi {due.due_date.strftime("%d.%m.%Y")} tarihinde dolacaktır.</p>'
         if res.email:
             ok, msg = send_mail(res.email, konu, mesaj_html, site.id)
-            if ok:
-                sent_mail += 1
-            else:
-                errors.append(f'Mail ({res.full_name()}): {msg}')
-
-        # SMS gönder
+            if ok: sent_mail += 1
+            else: errors.append(f'Mail ({res.full_name()}): {msg}')
         if res.phone:
             ok, msg = send_sms(res.phone, mesaj_kisa, site.id)
-            if ok:
-                sent_sms += 1
-            else:
-                errors.append(f'SMS ({res.full_name()}): {msg}')
-
+            if ok: sent_sms += 1
+            else: errors.append(f'SMS ({res.full_name()}): {msg}')
     if errors:
         flash(f'{sent_mail} mail, {sent_sms} SMS gönderildi. Hatalar: {"; ".join(errors[:3])}', 'warning')
     else:
         flash(f'{sent_mail} mail ve {sent_sms} SMS başarıyla gönderildi.', 'success')
-
     return redirect(url_for('site_admin.notifications'))
 
 
-# ── Borçlu Pasif Sakinler ─────────────────────────────────────────────────
 @site_admin_bp.route('/borclu-pasif-sakinler')
 @login_required
 @site_admin_required
@@ -1580,31 +1337,17 @@ def borclu_pasif_sakinler():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
-    # Pasif sakinlerin ödenmemiş aidatlarını bul
-    from sqlalchemy import func
     sonuclar = []
     pasif_sakinler = Resident.query.join(Apartment).join(Block).filter(
-        Block.site_id == site.id,
-        Resident.is_active == False
-    ).all()
-
+        Block.site_id == site.id, Resident.is_active == False).all()
     for res in pasif_sakinler:
         odenmemis = Due.query.filter_by(resident_id=res.id, is_paid=False).all()
         if odenmemis:
-            toplam_borc = sum(float(d.amount) for d in odenmemis)
-            sonuclar.append({
-                'resident'    : res,
-                'apartment'   : res.apartment,
-                'odenmemis'   : odenmemis,
-                'toplam_borc' : toplam_borc
-            })
-
-    return render_template('site_admin/borclu_pasif_sakinler.html',
-                           site=site, sonuclar=sonuclar)
+            sonuclar.append({'resident': res, 'apartment': res.apartment,
+                'odenmemis': odenmemis, 'toplam_borc': sum(float(d.amount) for d in odenmemis)})
+    return render_template('site_admin/borclu_pasif_sakinler.html', site=site, sonuclar=sonuclar)
 
 
-# ── Sakin Kullanıcıları ───────────────────────────────────────────────────
 @site_admin_bp.route('/sakin-kullanicilari')
 @login_required
 @site_admin_required
@@ -1612,28 +1355,14 @@ def sakin_kullanicilari():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
-    # Sitedeki tüm sakinlerin TC'siyle eşleşen kullanıcılar
-    site_tc_listesi = [
-        r.tc_no for r in Resident.query.join(Apartment).join(Block)
-        .filter(Block.site_id == site.id, Resident.tc_no != None).all()
-    ]
-
-    kullanicilar = User.query.filter(
-        User.username.in_(site_tc_listesi),
-        User.role == 'resident'
-    ).all()
-
-    # Her kullanıcıya sakin bilgisini ekle
+    site_tc_listesi = [r.tc_no for r in Resident.query.join(Apartment).join(Block)
+        .filter(Block.site_id == site.id, Resident.tc_no != None).all()]
+    kullanicilar = User.query.filter(User.username.in_(site_tc_listesi), User.role == 'resident').all()
     sonuclar = []
     for u in kullanicilar:
-        res = Resident.query.filter_by(tc_no=u.username).order_by(
-            Resident.is_active.desc(), Resident.move_in_date.desc()
-        ).first()
+        res = Resident.query.filter_by(tc_no=u.username).order_by(Resident.is_active.desc(), Resident.move_in_date.desc()).first()
         sonuclar.append({'kullanici': u, 'resident': res})
-
-    return render_template('site_admin/sakin_kullanicilari.html',
-                           site=site, sonuclar=sonuclar)
+    return render_template('site_admin/sakin_kullanicilari.html', site=site, sonuclar=sonuclar)
 
 
 @site_admin_bp.route('/sakin-kullanicilari/<int:uid>/toggle', methods=['POST'])
@@ -1642,45 +1371,30 @@ def sakin_kullanicilari():
 def toggle_sakin_kullanici(uid):
     u = User.query.get_or_404(uid)
     site = get_active_site()
-
     if u.is_active:
-        # Pasif yap
         u.is_active = False
         db.session.commit()
         flash(f'{u.username} kullanıcısı pasif yapıldı.', 'success')
     else:
-        # Aktif yap — daire seçimi
         apt_id = request.form.get('apartment_id', type=int)
         if not apt_id:
             flash('Lütfen bir daire seçin.', 'danger')
             return redirect(url_for('site_admin.sakin_kullanicilari'))
-
         apt = Apartment.query.get_or_404(apt_id)
         u.is_active = True
-
-        # İlgili sakini de aktif yap
         res = Resident.query.filter_by(tc_no=u.username, apartment_id=apt_id).first()
         if res:
             res.is_active = True
             res.move_out_date = None
         else:
             flash('Sakin kaydı bulunamadı, sadece kullanıcı aktif yapıldı.', 'warning')
-
         db.session.commit()
         flash(f'{u.username} kullanıcısı {apt.block.name} / Daire {apt.number} için aktif yapıldı.', 'success')
-
     return redirect(url_for('site_admin.sakin_kullanicilari'))
 
 
 # ── Evrak Klasörü ─────────────────────────────────────────────────────────
-EVRAK_KATEGORILER = [
-    'Kat Mülkiyeti Kararları',
-    'Yönetim Planı',
-    'Toplantı Tutanakları',
-    'Sözleşmeler',
-    'Faturalar',
-    'Diğer'
-]
+EVRAK_KATEGORILER = ['Kat Mülkiyeti Kararları', 'Yönetim Planı', 'Toplantı Tutanakları', 'Sözleşmeler', 'Faturalar', 'Diğer']
 
 @site_admin_bp.route('/evraklar')
 @login_required
@@ -1695,10 +1409,7 @@ def evraklar():
     if kategori:
         q = q.filter_by(category=kategori)
     docs = q.order_by(SiteDocument.created_at.desc()).all()
-    return render_template('site_admin/evraklar.html',
-                           site=site, docs=docs,
-                           kategoriler=EVRAK_KATEGORILER,
-                           secili_kategori=kategori)
+    return render_template('site_admin/evraklar.html', site=site, docs=docs, kategoriler=EVRAK_KATEGORILER, secili_kategori=kategori)
 
 
 @site_admin_bp.route('/evraklar/yukle', methods=['GET', 'POST'])
@@ -1710,44 +1421,28 @@ def evrak_yukle():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
     if request.method == 'POST':
         dosya = request.files.get('dosya')
         if not dosya or dosya.filename == '':
             flash('Lütfen bir dosya seçin.', 'danger')
             return redirect(request.url)
-
-        # Dosya kaydet
-        upload_dir = os.path.join('/home/probissi/site_takip/uploads', str(site.id))
+        upload_dir = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads', str(site.id))
         os.makedirs(upload_dir, exist_ok=True)
-
         ext = os.path.splitext(dosya.filename)[1].lower()
         izin_verilen = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.txt']
         if ext not in izin_verilen:
             flash('Bu dosya türüne izin verilmiyor.', 'danger')
             return redirect(request.url)
-
         benzersiz_ad = f"{uuid.uuid4().hex}{ext}"
         dosya_yolu   = os.path.join(upload_dir, benzersiz_ad)
         dosya.save(dosya_yolu)
-        dosya_boyut  = os.path.getsize(dosya_yolu)
-
-        doc = SiteDocument(
-            site_id       = site.id,
-            category      = request.form.get('category'),
-            title         = request.form.get('title'),
-            filename      = benzersiz_ad,
-            original_name = dosya.filename,
-            file_size     = dosya_boyut,
-            uploaded_by   = current_user.id
-        )
+        doc = SiteDocument(site_id=site.id, category=request.form.get('category'), title=request.form.get('title'),
+            filename=benzersiz_ad, original_name=dosya.filename, file_size=os.path.getsize(dosya_yolu), uploaded_by=current_user.id)
         db.session.add(doc)
         db.session.commit()
         flash('Evrak başarıyla yüklendi.', 'success')
         return redirect(url_for('site_admin.evraklar'))
-
-    return render_template('site_admin/evrak_yukle.html',
-                           site=site, kategoriler=EVRAK_KATEGORILER)
+    return render_template('site_admin/evrak_yukle.html', site=site, kategoriler=EVRAK_KATEGORILER)
 
 
 @site_admin_bp.route('/evraklar/<int:doc_id>/indir')
@@ -1758,11 +1453,8 @@ def evrak_indir(doc_id):
     from flask import send_from_directory
     import os
     doc  = SiteDocument.query.get_or_404(doc_id)
-    site = get_active_site()
-    upload_dir = os.path.join('/home/probissi/site_takip/uploads', str(doc.site_id))
-    return send_from_directory(upload_dir, doc.filename,
-                               as_attachment=True,
-                               download_name=doc.original_name)
+    upload_dir = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads', str(doc.site_id))
+    return send_from_directory(upload_dir, doc.filename, as_attachment=True, download_name=doc.original_name)
 
 
 @site_admin_bp.route('/evraklar/<int:doc_id>/sil', methods=['POST'])
@@ -1772,8 +1464,7 @@ def evrak_sil(doc_id):
     from app.models.models import SiteDocument
     import os
     doc = SiteDocument.query.get_or_404(doc_id)
-    dosya_yolu = os.path.join('/home/probissi/site_takip/uploads',
-                              str(doc.site_id), doc.filename)
+    dosya_yolu = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads', str(doc.site_id), doc.filename)
     if os.path.exists(dosya_yolu):
         os.remove(dosya_yolu)
     db.session.delete(doc)
@@ -1791,24 +1482,18 @@ def sakin_mesajlari():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
-    durum = request.args.get('durum', 'acik')  # acik | kapali | tumu
+    durum = request.args.get('durum', 'acik')
     q = ResidentMessage.query.filter_by(site_id=site.id)
     if durum == 'acik':
         q = q.filter_by(is_closed=False)
     elif durum == 'kapali':
         q = q.filter_by(is_closed=True)
-
     mesajlar = q.order_by(ResidentMessage.is_read, ResidentMessage.created_at.desc()).all()
-
-    # Okunmamışları okundu yap
     for m in mesajlar:
         if not m.is_read:
             m.is_read = True
     db.session.commit()
-
-    return render_template('site_admin/sakin_mesajlari.html',
-                           site=site, mesajlar=mesajlar, durum=durum)
+    return render_template('site_admin/sakin_mesajlari.html', site=site, mesajlar=mesajlar, durum=durum)
 
 
 @site_admin_bp.route('/sakin-mesajlari/<int:mid>/cevapla', methods=['POST'])
@@ -1819,9 +1504,7 @@ def sakin_mesaj_cevapla(mid):
     m = ResidentMessage.query.get_or_404(mid)
     cevap = request.form.get('reply', '').strip()
     if cevap:
-        m.reply     = cevap
-        m.reply_at  = datetime.now()
-        m.is_closed = True
+        m.reply = cevap; m.reply_at = datetime.now(); m.is_closed = True
         db.session.commit()
         flash('Cevap gönderildi ve mesaj kapatıldı.', 'success')
     return redirect(url_for('site_admin.sakin_mesajlari'))
@@ -1839,48 +1522,33 @@ def sakin_mesaj_kapat(mid):
     return redirect(url_for('site_admin.sakin_mesajlari'))
 
 
-# ── Süper Admin'e Mesaj ───────────────────────────────────────────────────
 @site_admin_bp.route('/superadmine-mesaj', methods=['GET', 'POST'])
 @login_required
 @site_admin_required
 def superadmine_mesaj():
     from app.models.models import AdminMessage
     site = get_active_site()
-
     if request.method == 'POST':
         title   = request.form.get('title', '').strip()
         message = request.form.get('message', '').strip()
         if not title or not message:
             flash('Başlık ve mesaj boş olamaz.', 'danger')
         else:
-            db.session.add(AdminMessage(
-                site_id   = site.id if site else None,
-                sender_id = current_user.id,
-                title     = title,
-                message   = message,
-                is_read   = False
-            ))
+            db.session.add(AdminMessage(site_id=site.id if site else None, sender_id=current_user.id,
+                title=title, message=message, is_read=False))
             db.session.commit()
             flash('Mesajınız sistem yöneticisine iletildi.', 'success')
             return redirect(url_for('site_admin.dashboard'))
-
-    # Gönderilmiş mesajlar
-    mesajlar = AdminMessage.query.filter_by(
-        sender_id=current_user.id
-    ).order_by(AdminMessage.created_at.desc()).all()
-
-    return render_template('site_admin/superadmine_mesaj.html',
-                           site=site, mesajlar=mesajlar)
+    mesajlar = AdminMessage.query.filter_by(sender_id=current_user.id).order_by(AdminMessage.created_at.desc()).all()
+    return render_template('site_admin/superadmine_mesaj.html', site=site, mesajlar=mesajlar)
 
 
-# ── Yönetici Evrakları (site admin görüntüle) ─────────────────────────────
 @site_admin_bp.route('/yonetici-evraklar')
 @login_required
 @site_admin_required
 def yonetici_evraklar():
     from app.models.models import AdminDocument
-    docs = AdminDocument.query.filter_by(target_user_id=current_user.id)\
-               .order_by(AdminDocument.created_at.desc()).all()
+    docs = AdminDocument.query.filter_by(target_user_id=current_user.id).order_by(AdminDocument.created_at.desc()).all()
     return render_template('site_admin/yonetici_evraklar.html', docs=docs)
 
 
@@ -1895,9 +1563,8 @@ def yonetici_evrak_indir(doc_id):
     if doc.target_user_id != current_user.id:
         flash('Bu evraka erişim yetkiniz yok.', 'danger')
         return redirect(url_for('site_admin.yonetici_evraklar'))
-    upload_dir = os.path.join('/home/probissi/site_takip/uploads/admin', str(doc.target_user_id))
-    return send_from_directory(upload_dir, doc.filename,
-                               as_attachment=True, download_name=doc.original_name)
+    upload_dir = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/admin', str(doc.target_user_id))
+    return send_from_directory(upload_dir, doc.filename, as_attachment=True, download_name=doc.original_name)
 
 
 # ── Context Processor ─────────────────────────────────────────────────────
@@ -1908,16 +1575,13 @@ def inject_unread_admin_reply():
     count = 0
     try:
         if current_user.is_authenticated and current_user.role == 'site_admin':
-            count = AdminMessage.query.filter_by(
-                sender_id=current_user.id,
-                reply_read=False
-            ).filter(AdminMessage.reply != None).count()
+            count = AdminMessage.query.filter_by(sender_id=current_user.id, reply_read=False)\
+                .filter(AdminMessage.reply != None).count()
     except Exception:
         pass
     return dict(site_admin_unread_reply=count)
 
 
-# ── Sakin Mesajları Toplu Sil ─────────────────────────────────────────────
 @site_admin_bp.route('/sakin-mesajlari/toplu-sil', methods=['POST'])
 @login_required
 @site_admin_required
@@ -1925,15 +1589,12 @@ def sakin_mesaj_toplu_sil():
     from app.models.models import ResidentMessage
     site = get_active_site()
     if site:
-        ResidentMessage.query.filter_by(
-            site_id=site.id, is_closed=True
-        ).delete()
+        ResidentMessage.query.filter_by(site_id=site.id, is_closed=True).delete()
         db.session.commit()
         flash('Kapatılmış mesajlar silindi.', 'success')
     return redirect(url_for('site_admin.sakin_mesajlari', durum='kapali'))
 
 
-# ── Tekrar Eden Giderleri Bu Aya Ekle ────────────────────────────────────
 @site_admin_bp.route('/expenses/tekrar-eden-ekle', methods=['POST'])
 @login_required
 @site_admin_required
@@ -1941,49 +1602,25 @@ def tekrar_eden_ekle():
     site  = get_active_site()
     year  = int(request.form.get('year'))
     month = int(request.form.get('month'))
-
     if month == 1:
         prev_year, prev_month = year - 1, 12
     else:
         prev_year, prev_month = year, month - 1
-
-    gecen_ay_tekrar = Expense.query.filter_by(
-        site_id=site.id, period_year=prev_year,
-        period_month=prev_month, is_recurring=True
-    ).all()
-
-    bu_ay_type_ids = {e.type_id for e in Expense.query.filter_by(
-        site_id=site.id, period_year=year, period_month=month
-    ).all()}
-
+    gecen_ay_tekrar = Expense.query.filter_by(site_id=site.id, period_year=prev_year, period_month=prev_month, is_recurring=True).all()
+    bu_ay_type_ids = {e.type_id for e in Expense.query.filter_by(site_id=site.id, period_year=year, period_month=month).all()}
     count = 0
     for exp in gecen_ay_tekrar:
         if exp.type_id not in bu_ay_type_ids:
-            db.session.add(Expense(
-                site_id      = exp.site_id,
-                block_id     = exp.block_id,
-                category_id  = exp.category_id,
-                type_id      = exp.type_id,
-                amount       = exp.amount,
-                description  = exp.description,
-                expense_date = date.today(),
-                period_year  = year,
-                period_month = month,
-                receipt_no   = exp.receipt_no,
-                is_recurring = True,
-                created_by   = current_user.id
-            ))
+            db.session.add(Expense(site_id=exp.site_id, block_id=exp.block_id, category_id=exp.category_id,
+                type_id=exp.type_id, amount=exp.amount, description=exp.description,
+                expense_date=date.today(), period_year=year, period_month=month,
+                receipt_no=exp.receipt_no, is_recurring=True, created_by=current_user.id))
             count += 1
-
     db.session.commit()
     flash(f'{count} tekrar eden gider bu aya eklendi.', 'success')
     return redirect(url_for('site_admin.expenses', year=year, month=month))
 
 
-
-
-
-# ── Yardım Dosyaları ──────────────────────────────────────────────────────
 @site_admin_bp.route('/yardim')
 @login_required
 @site_admin_required
@@ -2000,10 +1637,8 @@ def duyurular():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-    duyuru_list = Announcement.query.filter_by(site_id=site.id)\
-        .order_by(Announcement.publish_at.desc()).all()
-    return render_template('site_admin/duyurular.html',
-                           site=site, duyurular=duyuru_list, now=datetime.now())
+    duyuru_list = Announcement.query.filter_by(site_id=site.id).order_by(Announcement.publish_at.desc()).all()
+    return render_template('site_admin/duyurular.html', site=site, duyurular=duyuru_list, now=datetime.now())
 
 
 @site_admin_bp.route('/duyurular/yeni', methods=['GET', 'POST'])
@@ -2014,25 +1649,15 @@ def yeni_duyuru():
     site = get_active_site()
     if not site:
         return redirect(url_for('site_admin.dashboard'))
-
     if request.method == 'POST':
-        publish_at = datetime.strptime(
-            request.form.get('publish_at'), '%Y-%m-%dT%H:%M'
-        )
-        db.session.add(Announcement(
-            site_id      = site.id,
-            title        = request.form.get('title'),
-            content      = request.form.get('content'),
-            publish_at   = publish_at,
-            send_sms     = bool(request.form.get('send_sms')),
-            send_mail    = bool(request.form.get('send_mail')),
-            is_published = False,
-            created_by   = current_user.id
-        ))
+        publish_at = datetime.strptime(request.form.get('publish_at'), '%Y-%m-%dT%H:%M')
+        db.session.add(Announcement(site_id=site.id, title=request.form.get('title'),
+            content=request.form.get('content'), publish_at=publish_at,
+            send_sms=bool(request.form.get('send_sms')), send_mail=bool(request.form.get('send_mail')),
+            is_published=False, created_by=current_user.id))
         db.session.commit()
         flash('Duyuru oluşturuldu. Belirlenen tarih ve saatte yayınlanacak.', 'success')
         return redirect(url_for('site_admin.duyurular'))
-
     return render_template('site_admin/duyuru_form.html', site=site, duyuru=None)
 
 
@@ -2054,31 +1679,17 @@ def duyuru_sil(did):
 def duyuru_hemen_yayinla(did):
     from app.models.models import Announcement
     from app.utils import send_mail, send_sms
-    from app.models.models import Resident, Apartment, Block
-
     d = Announcement.query.get_or_404(did)
     site = get_active_site()
-
-    d.is_published = True
-    d.publish_at   = datetime.now()
-
-    # SMS ve mail gönder
+    d.is_published = True; d.publish_at = datetime.now()
     if d.send_sms or d.send_mail:
-        sakinler = Resident.query.join(Apartment).join(Block).filter(
-            Block.site_id == site.id,
-            Resident.is_active == True
-        ).all()
-
+        sakinler = Resident.query.join(Apartment).join(Block).filter(Block.site_id == site.id, Resident.is_active == True).all()
         for res in sakinler:
             if d.send_mail and res.email:
-                html = f'<h3>{d.title}</h3><p>{d.content}</p>'
-                send_mail(res.email, d.title, html, site.id)
+                send_mail(res.email, d.title, f'<h3>{d.title}</h3><p>{d.content}</p>', site.id)
             if d.send_sms and res.phone:
                 send_sms(res.phone, f'{d.title}: {d.content[:100]}', site.id)
-
-        d.sms_sent  = d.send_sms
-        d.mail_sent = d.send_mail
-
+        d.sms_sent = d.send_sms; d.mail_sent = d.send_mail
     db.session.commit()
     flash('Duyuru hemen yayınlandı ve bildirimler gönderildi.', 'success')
     return redirect(url_for('site_admin.duyurular'))
@@ -2091,10 +1702,8 @@ def duyuru_hemen_yayinla(did):
 def isletme_projeleri():
     from app.models.models import IsletmeProje
     site = get_active_site()
-    projeler = IsletmeProje.query.filter_by(site_id=site.id)\
-        .order_by(IsletmeProje.yil.desc()).all()
-    return render_template('site_admin/isletme_projeleri.html',
-                           site=site, projeler=projeler)
+    projeler = IsletmeProje.query.filter_by(site_id=site.id).order_by(IsletmeProje.yil.desc()).all()
+    return render_template('site_admin/isletme_projeleri.html', site=site, projeler=projeler)
 
 
 @site_admin_bp.route('/isletme-projeleri/yeni', methods=['GET', 'POST'])
@@ -2104,60 +1713,38 @@ def yeni_isletme_projesi():
     from app.models.models import IsletmeProje, IsletmeProjeKalem, Block
     from datetime import datetime
     siteler = get_current_sites()
-
-    # Seçili site
     secili_site_id = request.args.get('site_id') or request.form.get('site_id')
     if secili_site_id:
         site = Site.query.get(int(secili_site_id))
     else:
         site = get_active_site()
-
     bloklar = Block.query.filter_by(site_id=site.id).all()
-
+    blok_daire_sayilari = {blok.id: blok.apartments.filter_by(gorevli_muaf=False).count() for blok in bloklar}
+    tum_site_daire_sayisi = sum(blok_daire_sayilari.values())
     if request.method == 'POST':
-        block_id = request.form.get('block_id') or None
+        block_id   = request.form.get('block_id') or None
         kmk_tarihi = request.form.get('kmk_karar_tarihi') or None
         proje = IsletmeProje(
-            site_id          = site.id,
-            block_id         = block_id,
-            yil              = int(request.form.get('yil')),
-            kmk_karar_tarihi = kmk_tarihi,
-            kmk_karar_no     = request.form.get('kmk_karar_no'),
-            daire_sayisi     = int(request.form.get('daire_sayisi')),
-            notlar           = request.form.get('notlar'),
-            created_by       = current_user.id
+            site_id=site.id, block_id=block_id, yil=int(request.form.get('yil')),
+            kmk_karar_tarihi=kmk_tarihi, kmk_karar_no=request.form.get('kmk_karar_no'),
+            daire_sayisi=int(request.form.get('daire_sayisi')),
+            notlar=request.form.get('notlar'), created_by=current_user.id
         )
         db.session.add(proje)
         db.session.flush()
-
-        kalem_adlari = request.form.getlist('kalem_adi')
+        kalem_adlari   = request.form.getlist('kalem_adi')
         kalem_tutarlar = request.form.getlist('aylik_tutar')
         for adi, tutar in zip(kalem_adlari, kalem_tutarlar):
             if adi.strip() and tutar:
-                db.session.add(IsletmeProjeKalem(
-                    proje_id    = proje.id,
-                    kalem_adi   = adi.strip(),
-                    aylik_tutar = float(tutar)
-                ))
-
+                db.session.add(IsletmeProjeKalem(proje_id=proje.id, kalem_adi=adi.strip(), aylik_tutar=float(tutar)))
         db.session.commit()
         flash('İşletme projesi oluşturuldu.', 'success')
         return redirect(url_for('site_admin.isletme_projesi_detay', pid=proje.id))
-
-    varsayilan_kalemler = [
-        'Kapıcı Maaş + SGK',
-        'Elektrik (Ortak Alan)',
-        'Su',
-        'Asansör Bakım',
-        'Temizlik Malzemesi',
-        'Sigorta',
-        'Yönetim Hizmet Bedeli',
-    ]
-
-    return render_template('site_admin/isletme_proje_form.html',
-                           site=site, siteler=siteler, bloklar=bloklar,
-                           varsayilan_kalemler=varsayilan_kalemler,
-                           now=datetime.now())
+    varsayilan_kalemler = ['Kapıcı Maaş + SGK', 'Elektrik (Ortak Alan)', 'Su', 'Asansör Bakım', 'Temizlik Malzemesi', 'Sigorta', 'Yönetim Hizmet Bedeli']
+    return render_template('site_admin/isletme_proje_form.html', site=site, siteler=siteler, bloklar=bloklar,
+                           varsayilan_kalemler=varsayilan_kalemler, now=datetime.now(),
+                           blok_daire_sayilari=blok_daire_sayilari,
+                           tum_site_daire_sayisi=tum_site_daire_sayisi)
 
 
 @site_admin_bp.route('/isletme-projeleri/<int:pid>')
@@ -2175,7 +1762,7 @@ def isletme_projesi_detay(pid):
 def isletme_projesi_pdf(pid):
     from app.models.models import IsletmeProje
     from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.colors import HexColor, white
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
     from reportlab.lib.units import cm
@@ -2190,19 +1777,11 @@ def isletme_projesi_pdf(pid):
 
     proje = IsletmeProje.query.get_or_404(pid)
     buffer = io.BytesIO()
-
-    doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=2*cm, leftMargin=2*cm,
-                            topMargin=2*cm, bottomMargin=2*cm)
-
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     navy  = HexColor('#1e3a8a')
     light = HexColor('#f1f5f9')
-
-    baslik = ParagraphStyle('B', fontName='LiberationSans-Bold', fontSize=16,
-                            textColor=navy, alignment=TA_CENTER, spaceAfter=4)
-    alt_baslik = ParagraphStyle('AB', fontName='LiberationSans', fontSize=11,
-                                textColor=HexColor('#64748b'), alignment=TA_CENTER, spaceAfter=4)
-
+    baslik = ParagraphStyle('B', fontName='LiberationSans-Bold', fontSize=16, textColor=navy, alignment=TA_CENTER, spaceAfter=4)
+    alt_baslik = ParagraphStyle('AB', fontName='LiberationSans', fontSize=11, textColor=HexColor('#64748b'), alignment=TA_CENTER, spaceAfter=4)
     story = []
     story.append(Paragraph(proje.site.name.upper(), baslik))
     blok_adi = f' - {proje.block.name}' if proje.block else ''
@@ -2210,7 +1789,6 @@ def isletme_projesi_pdf(pid):
     story.append(Spacer(1, 0.3*cm))
     story.append(HRFlowable(width='100%', thickness=2, color=navy))
     story.append(Spacer(1, 0.3*cm))
-
     if proje.kmk_karar_tarihi or proje.kmk_karar_no:
         kmk = []
         if proje.kmk_karar_tarihi:
@@ -2219,71 +1797,42 @@ def isletme_projesi_pdf(pid):
             kmk.append(f'KMK Karar No: {proje.kmk_karar_no}')
         story.append(Paragraph('   |   '.join(kmk), alt_baslik))
         story.append(Spacer(1, 0.3*cm))
-
     tablo_data = [['Gider Kalemi', 'Aylik (TL)', 'Yillik (TL)']]
     for k in proje.kalemler:
-        tablo_data.append([
-            k.kalem_adi,
-            f'{float(k.aylik_tutar):,.2f}',
-            f'{float(k.aylik_tutar) * 12:,.2f}'
-        ])
+        tablo_data.append([k.kalem_adi, f'{float(k.aylik_tutar):,.2f}', f'{float(k.aylik_tutar) * 12:,.2f}'])
     tablo_data.append(['TOPLAM', f'{proje.aylik_toplam:,.2f}', f'{proje.yillik_toplam:,.2f}'])
-
     t = Table(tablo_data, colWidths=[9*cm, 4*cm, 4*cm])
     t.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), navy),
-        ('TEXTCOLOR', (0,0), (-1,0), white),
-        ('FONTNAME', (0,0), (-1,0), 'LiberationSans-Bold'),
-        ('FONTNAME', (0,1), (-1,-1), 'LiberationSans'),
-        ('FONTNAME', (0,-1), (-1,-1), 'LiberationSans-Bold'),
-        ('BACKGROUND', (0,-1), (-1,-1), HexColor('#e2e8f0')),
-        ('FONTSIZE', (0,0), (-1,-1), 10),
-        ('ROWBACKGROUNDS', (0,1), (-1,-2), [white, light]),
-        ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')),
-        ('PADDING', (0,0), (-1,-1), 7),
-        ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+        ('BACKGROUND', (0,0), (-1,0), navy), ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), 'LiberationSans-Bold'), ('FONTNAME', (0,1), (-1,-1), 'LiberationSans'),
+        ('FONTNAME', (0,-1), (-1,-1), 'LiberationSans-Bold'), ('BACKGROUND', (0,-1), (-1,-1), HexColor('#e2e8f0')),
+        ('FONTSIZE', (0,0), (-1,-1), 10), ('ROWBACKGROUNDS', (0,1), (-1,-2), [white, light]),
+        ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')), ('PADDING', (0,0), (-1,-1), 7), ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
     ]))
     story.append(t)
     story.append(Spacer(1, 0.4*cm))
-
-    ozet_data = [
-        ['Toplam Daire Sayisi', str(proje.daire_sayisi)],
-        ['Aylik Toplam Gider', f'{proje.aylik_toplam:,.2f} TL'],
-        ['Yillik Toplam Gider', f'{proje.yillik_toplam:,.2f} TL'],
-        ['Aylik Daire Basi Aidat', f'{proje.daire_basi_aidat:,.2f} TL'],
-    ]
+    ozet_data = [['Toplam Daire Sayisi', str(proje.daire_sayisi)], ['Aylik Toplam Gider', f'{proje.aylik_toplam:,.2f} TL'],
+        ['Yillik Toplam Gider', f'{proje.yillik_toplam:,.2f} TL'], ['Aylik Daire Basi Aidat', f'{proje.daire_basi_aidat:,.2f} TL']]
     ozet = Table(ozet_data, colWidths=[9*cm, 8*cm])
     ozet.setStyle(TableStyle([
-        ('FONTNAME', (0,0), (-1,-1), 'LiberationSans'),
-        ('FONTNAME', (0,-1), (-1,-1), 'LiberationSans-Bold'),
-        ('FONTSIZE', (0,0), (-1,-1), 11),
-        ('BACKGROUND', (0,-1), (-1,-1), HexColor('#dbeafe')),
-        ('ROWBACKGROUNDS', (0,0), (-1,-2), [white, light]),
-        ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')),
-        ('PADDING', (0,0), (-1,-1), 8),
-        ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+        ('FONTNAME', (0,0), (-1,-1), 'LiberationSans'), ('FONTNAME', (0,-1), (-1,-1), 'LiberationSans-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 11), ('BACKGROUND', (0,-1), (-1,-1), HexColor('#dbeafe')),
+        ('ROWBACKGROUNDS', (0,0), (-1,-2), [white, light]), ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')),
+        ('PADDING', (0,0), (-1,-1), 8), ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
     ]))
     story.append(ozet)
     story.append(Spacer(1, 1*cm))
-
-    imza_data = [
-        ['Yonetici', 'Denetci', 'Denetci'],
+    imza_data = [['Yonetici', 'Denetci', 'Denetci'],
         ['\n\n\n________________', '\n\n\n________________', '\n\n\n________________'],
-        ['Ad Soyad / Imza', 'Ad Soyad / Imza', 'Ad Soyad / Imza'],
-    ]
+        ['Ad Soyad / Imza', 'Ad Soyad / Imza', 'Ad Soyad / Imza']]
     imza = Table(imza_data, colWidths=[5.67*cm, 5.67*cm, 5.67*cm])
     imza.setStyle(TableStyle([
-        ('FONTNAME', (0,0), (-1,-1), 'LiberationSans'),
-        ('FONTNAME', (0,0), (-1,0), 'LiberationSans-Bold'),
-        ('FONTSIZE', (0,0), (-1,-1), 10),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('PADDING', (0,0), (-1,-1), 8),
+        ('FONTNAME', (0,0), (-1,-1), 'LiberationSans'), ('FONTNAME', (0,0), (-1,0), 'LiberationSans-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 10), ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('PADDING', (0,0), (-1,-1), 8),
     ]))
     story.append(imza)
-
     doc.build(story)
     buffer.seek(0)
-
     response = make_response(buffer.read())
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=isletme_projesi_{proje.yil}.pdf'
