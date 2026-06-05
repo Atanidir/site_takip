@@ -401,13 +401,18 @@ def new_resident(aid):
 
     if request.method == 'POST':
         tc_no = request.form.get('tc_no', '').strip()
-        if tc_no and not _tc_dogrula(tc_no):
-            flash('Geçersiz TC Kimlik No girdiniz.', 'danger')
-            return render_template('site_admin/resident_form.html', site=site, apartment=apt,
-                                   resident=None, default_type=default_type)
+        # TC dogrulama gecici devre disi
+        # if tc_no and not _tc_dogrula(tc_no):
+        #     flash('Geçersiz TC Kimlik No girdiniz.', 'danger')
+        #     return render_template('site_admin/resident_form.html', site=site, apartment=apt,
+        #                            resident=None, default_type=default_type)
         email = request.form.get('email')
         u = User.query.filter_by(email=email).first() if email else None
         resident_type = request.form.get('resident_type')
+        # Mevcut kullanıcı ID varsa kullan (TC kontrolünden geldi)
+        mevcut_user_id = request.form.get('mevcut_user_id')
+        if mevcut_user_id:
+            u = User.query.get(int(mevcut_user_id)) or u
         if tc_no:
             mevcut = Resident.query.filter_by(tc_no=tc_no, apartment_id=aid, is_active=True).first()
             if mevcut:
@@ -667,9 +672,13 @@ def generate_dues():
     site = get_active_site()
     now  = datetime.now()
     if request.method == 'POST':
+        import logging
+        logging.basicConfig(filename='/var/www/probissi/data/www/probissite.com.tr/site_takip/app_debug.log', level=logging.DEBUG)
+        logging.debug(f"FORM: {dict(request.form)}")
         start_date     = _parse_date(request.form.get('start_date'))
         end_date       = _parse_date(request.form.get('end_date'))
         due_date       = _parse_date(request.form.get('due_date'))
+        logging.debug(f"start_date={start_date}, end_date={end_date}, due_date={due_date}")
         yakit_due_date = _parse_date(request.form.get('yakit_due_date'))
         year           = int(request.form.get('year'))
         month          = int(request.form.get('month'))
@@ -700,9 +709,11 @@ def generate_dues():
             flash('Sistemde daire bulunamadı.', 'danger')
             return redirect(url_for('site_admin.generate_dues'))
 
-        daire_demirbas = round(demirbas_top / daire_sayisi, 2)
-        daire_normal   = round(normal_top   / daire_sayisi, 2)
-        daire_yakit    = round(yakit_top    / daire_sayisi, 2) if yakit_top > 0 else 0
+        # İşletme projesinden gelince normal zaten daire başı × daire sayısı
+        # Giderlerden gelince daire sayısına böl
+        daire_demirbas = round(demirbas_top / daire_sayisi, 2) if daire_sayisi > 0 else 0
+        daire_normal   = round(normal_top   / daire_sayisi, 2) if daire_sayisi > 0 else 0
+        daire_yakit    = round(yakit_top    / daire_sayisi, 2) if yakit_top > 0 and daire_sayisi > 0 else 0
 
         count = 0
         for apt in tum_daireler:
@@ -936,6 +947,37 @@ def api_blocks(site_id):
 def api_categories(site_id):
     cats = ExpenseCategory.query.all()
     return jsonify([{'id': c.id, 'name': c.name} for c in cats])
+
+@site_admin_bp.route('/api/tc-kontrol')
+@login_required
+@site_admin_required
+def api_tc_kontrol():
+    tc_no = request.args.get('tc_no', '').strip()
+    if not tc_no:
+        return jsonify({'bulundu': False})
+    
+    siteler = get_current_sites()
+    site_ids = [s.id for s in siteler]
+    
+    mevcut = Resident.query.filter_by(tc_no=tc_no, is_active=True).all()
+    mevcut = [r for r in mevcut if r.apartment.block.site_id in site_ids]
+    
+    if not mevcut:
+        return jsonify({'bulundu': False})
+    
+    sonuclar = []
+    for r in mevcut:
+        sonuclar.append({
+            'ad_soyad': r.full_name(),
+            'blok': r.apartment.block.name,
+            'daire': r.apartment.number,
+            'site': r.apartment.block.site.name,
+            'resident_id': r.id,
+            'user_id': r.user_id
+        })
+    
+    return jsonify({'bulundu': True, 'kayitlar': sonuclar})
+
 
 
 # ── Yardımcı ─────────────────────────────────────────────────────────────
@@ -1853,3 +1895,153 @@ def isletme_projesi_pdf(pid):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=isletme_projesi_{proje.yil}.pdf'
     return response
+
+# ── Demirbaş Defteri ──────────────────────────────────────────────────────
+DEMIRBAS_KATEGORILER = ['Elektrik', 'Mekanik', 'Güvenlik', 'Asansör', 'Isıtma', 'Bahçe', 'Temizlik', 'Ofis', 'Diğer']
+
+@site_admin_bp.route('/demirbaslar')
+@login_required
+@site_admin_required
+def demirbaslar():
+    from app.models.models import Demirbas
+    site = get_active_site()
+    if not site:
+        return redirect(url_for('site_admin.dashboard'))
+    siteler = get_current_sites()
+    site_ids = [s.id for s in siteler]
+    blok_id  = request.args.get('blok_id', '')
+    kategori = request.args.get('kategori', '')
+    durum    = request.args.get('durum', '')
+    q = Demirbas.query.filter(Demirbas.site_id.in_(site_ids))
+    if blok_id:
+        q = q.filter(Demirbas.block_id == int(blok_id))
+    if kategori:
+        q = q.filter(Demirbas.kategori == kategori)
+    if durum:
+        q = q.filter(Demirbas.durum == durum)
+    liste = q.order_by(Demirbas.created_at.desc()).all()
+    bloklar = Block.query.filter(Block.site_id.in_(site_ids)).order_by(Block.name).all()
+    return render_template('site_admin/demirbaslar.html',
+                           site=site, liste=liste, bloklar=bloklar,
+                           kategoriler=DEMIRBAS_KATEGORILER,
+                           blok_id=blok_id, kategori=kategori, durum=durum,
+                           today=date.today())
+
+
+@site_admin_bp.route('/demirbaslar/yeni', methods=['GET', 'POST'])
+@login_required
+@site_admin_required
+def yeni_demirbas():
+    from app.models.models import Demirbas
+    import uuid, os
+    site = get_active_site()
+    siteler = get_current_sites()
+    bloklar = Block.query.filter_by(site_id=site.id).all() if site else []
+    if request.method == 'POST':
+        dosya = request.files.get('fatura')
+        fatura_dosya = None
+        fatura_orijinal = None
+        if dosya and dosya.filename:
+            ext = os.path.splitext(dosya.filename)[1].lower()
+            izin = ['.pdf', '.jpg', '.jpeg', '.png']
+            if ext in izin:
+                upload_dir = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/demirbaslar')
+                os.makedirs(upload_dir, exist_ok=True)
+                fatura_dosya = f"{uuid.uuid4().hex}{ext}"
+                fatura_orijinal = dosya.filename
+                dosya.save(os.path.join(upload_dir, fatura_dosya))
+        d = Demirbas(
+            site_id    = int(request.form.get('site_id', site.id)),
+            block_id   = request.form.get('block_id') or None,
+            kategori   = request.form.get('kategori'),
+            ad         = request.form.get('ad'),
+            adet       = int(request.form.get('adet', 1)),
+            alis_tarihi  = _parse_date(request.form.get('alis_tarihi')),
+            alis_fiyati  = request.form.get('alis_fiyati') or None,
+            garanti_bitis = _parse_date(request.form.get('garanti_bitis')),
+            durum      = request.form.get('durum', 'aktif'),
+            notlar     = request.form.get('notlar'),
+            fatura_dosya = fatura_dosya,
+            fatura_orijinal_ad = fatura_orijinal,
+            created_by = current_user.id
+        )
+        db.session.add(d)
+        db.session.commit()
+        flash('Demirbaş eklendi.', 'success')
+        return redirect(url_for('site_admin.demirbaslar'))
+    return render_template('site_admin/demirbas_form.html',
+                           site=site, siteler=siteler, bloklar=bloklar,
+                           demirbas=None, kategoriler=DEMIRBAS_KATEGORILER)
+
+
+@site_admin_bp.route('/demirbaslar/<int:did>/edit', methods=['GET', 'POST'])
+@login_required
+@site_admin_required
+def edit_demirbas(did):
+    from app.models.models import Demirbas
+    import uuid, os
+    site = get_active_site()
+    siteler = get_current_sites()
+    d = Demirbas.query.get_or_404(did)
+    bloklar = Block.query.filter_by(site_id=d.site_id).all()
+    if request.method == 'POST':
+        dosya = request.files.get('fatura')
+        if dosya and dosya.filename:
+            ext = os.path.splitext(dosya.filename)[1].lower()
+            izin = ['.pdf', '.jpg', '.jpeg', '.png']
+            if ext in izin:
+                upload_dir = '/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/demirbaslar'
+                os.makedirs(upload_dir, exist_ok=True)
+                d.fatura_dosya = f"{uuid.uuid4().hex}{ext}"
+                d.fatura_orijinal_ad = dosya.filename
+                dosya.save(os.path.join(upload_dir, d.fatura_dosya))
+        d.site_id      = int(request.form.get('site_id', d.site_id))
+        d.block_id     = request.form.get('block_id') or None
+        d.kategori     = request.form.get('kategori')
+        d.ad           = request.form.get('ad')
+        d.adet         = int(request.form.get('adet', 1))
+        d.alis_tarihi  = _parse_date(request.form.get('alis_tarihi'))
+        d.alis_fiyati  = request.form.get('alis_fiyati') or None
+        d.garanti_bitis = _parse_date(request.form.get('garanti_bitis'))
+        d.durum        = request.form.get('durum', 'aktif')
+        d.notlar       = request.form.get('notlar')
+        db.session.commit()
+        flash('Demirbaş güncellendi.', 'success')
+        return redirect(url_for('site_admin.demirbaslar'))
+    return render_template('site_admin/demirbas_form.html',
+                           site=site, siteler=siteler, bloklar=bloklar,
+                           demirbas=d, kategoriler=DEMIRBAS_KATEGORILER)
+
+
+@site_admin_bp.route('/demirbaslar/<int:did>/sil', methods=['POST'])
+@login_required
+@site_admin_required
+def sil_demirbas(did):
+    from app.models.models import Demirbas
+    import os
+    d = Demirbas.query.get_or_404(did)
+    if d.fatura_dosya:
+        dosya_yolu = os.path.join('/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/demirbaslar', d.fatura_dosya)
+        if os.path.exists(dosya_yolu):
+            os.remove(dosya_yolu)
+    db.session.delete(d)
+    db.session.commit()
+    flash('Demirbaş silindi.', 'success')
+    return redirect(url_for('site_admin.demirbaslar'))
+
+
+@site_admin_bp.route('/demirbaslar/<int:did>/fatura')
+@login_required
+@site_admin_required
+def demirbas_fatura(did):
+    from app.models.models import Demirbas
+    from flask import send_from_directory
+    d = Demirbas.query.get_or_404(did)
+    if not d.fatura_dosya:
+        flash('Fatura bulunamadı.', 'danger')
+        return redirect(url_for('site_admin.demirbaslar'))
+    return send_from_directory(
+        '/var/www/probissi/data/www/probissite.com.tr/site_takip/uploads/demirbaslar',
+        d.fatura_dosya, as_attachment=False,
+        download_name=d.fatura_orijinal_ad or d.fatura_dosya
+    )

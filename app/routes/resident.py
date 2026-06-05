@@ -22,14 +22,15 @@ def resident_required(f):
 @resident_required
 def dashboard():
     res = Resident.query.filter_by(user_id=current_user.id, is_active=True).first()
+    tum_sakinlikler = Resident.query.filter_by(user_id=current_user.id, is_active=True).all()
     normal_dues = []
     yakit_dues  = []
     expenses    = []
-    if res:
-        # Sadece bu sakine ait aidatlar
-        normal_dues = Due.query.filter_by(resident_id=res.id, due_type='normal')\
+    if tum_sakinlikler:
+        resident_ids = [r.id for r in tum_sakinlikler]
+        normal_dues = Due.query.filter(Due.resident_id.in_(resident_ids), Due.due_type=='normal')\
                       .order_by(Due.period_year.desc(), Due.period_month.desc()).limit(24).all()
-        yakit_dues  = Due.query.filter_by(resident_id=res.id, due_type='yakit')\
+        yakit_dues  = Due.query.filter(Due.resident_id.in_(resident_ids), Due.due_type=='yakit')\
                       .order_by(Due.period_year.desc(), Due.period_month.desc()).limit(24).all()
         site_id = res.apartment.block.site_id
         expenses = Expense.query.filter_by(site_id=site_id)\
@@ -39,11 +40,13 @@ def dashboard():
     if res:
         from app.models.models import SystemSettings
         site_id = res.apartment.block.site_id
-        odeme_cfg = SystemSettings.query.filter_by(scope='site', site_id=site_id).first()
-        if not odeme_cfg or not odeme_cfg.odeme_active:
-            odeme_cfg = SystemSettings.query.filter_by(scope='global').first()
-        if odeme_cfg and not odeme_cfg.odeme_active:
-            odeme_cfg = None
+        site_cfg = SystemSettings.query.filter_by(scope='site', site_id=site_id).first()
+        if site_cfg and site_cfg.odeme_active:
+            odeme_cfg = site_cfg
+        else:
+            global_cfg = SystemSettings.query.filter_by(scope='global').first()
+            if global_cfg and global_cfg.odeme_active:
+                odeme_cfg = global_cfg
 
     # Aktif duyurular
     duyurular = []

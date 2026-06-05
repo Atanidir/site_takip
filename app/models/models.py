@@ -172,6 +172,8 @@ class Apartment(db.Model):
     number_type     = db.Column(db.String(12), default='numeric')
     number_length   = db.Column(db.Integer, default=3)
     aidat_muaf      = db.Column(db.Boolean, default=False)
+    demirbas_muaf   = db.Column(db.Boolean, default=False)
+    yakit_muaf      = db.Column(db.Boolean, default=False)
     muaf_aciklama   = db.Column(db.String(128))
     gorevli_muaf    = db.Column(db.Boolean, default=False)
     m2              = db.Column(db.Numeric(8, 2), nullable=True)
@@ -508,3 +510,43 @@ class IsletmeProjeKalem(db.Model):
 
     def __repr__(self):
         return f'<IsletmeProjeKalem {self.kalem_adi}>'
+
+class Demirbas(db.Model):
+    __tablename__ = 'demirbaslar'
+    id              = db.Column(db.Integer, primary_key=True)
+    site_id         = db.Column(db.Integer, db.ForeignKey('sites.id'))
+    block_id        = db.Column(db.Integer, db.ForeignKey('blocks.id'))
+    kategori        = db.Column(db.String(64))
+    ad              = db.Column(db.String(128), nullable=False)
+    adet            = db.Column(db.Integer, default=1)
+    alis_tarihi     = db.Column(db.Date)
+    alis_fiyati     = db.Column(db.Numeric(10,2))
+    garanti_bitis   = db.Column(db.Date)
+    durum           = db.Column(db.String(32), default='aktif')
+    notlar          = db.Column(db.Text)
+    fatura_dosya    = db.Column(db.String(256))
+    fatura_orijinal_ad = db.Column(db.String(256))
+    created_by      = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+
+    site  = db.relationship('Site',  foreign_keys=[site_id])
+    block = db.relationship('Block', foreign_keys=[block_id])
+
+    @property
+    def garanti_durumu(self):
+        if not self.garanti_bitis:
+            return 'bilinmiyor'
+        from datetime import date
+        kalan = (self.garanti_bitis - date.today()).days
+        if kalan < 0:
+            return 'bitti'
+        elif kalan <= 30:
+            return 'yaklasan'
+        return 'aktif'
+
+    @property
+    def garanti_kalan_gun(self):
+        if not self.garanti_bitis:
+            return None
+        from datetime import date
+        return (self.garanti_bitis - date.today()).days

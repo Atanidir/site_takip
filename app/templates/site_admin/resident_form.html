@@ -11,12 +11,12 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ad <span class="text-red-500">*</span></label>
-                    <input type="text" name="first_name" required value="{{ resident.first_name if resident else '' }}"
+                    <input type="text" name="first_name" id="first_name" required value="{{ resident.first_name if resident else '' }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Soyad <span class="text-red-500">*</span></label>
-                    <input type="text" name="last_name" required value="{{ resident.last_name if resident else '' }}"
+                    <input type="text" name="last_name" id="last_name" required value="{{ resident.last_name if resident else '' }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
@@ -27,6 +27,24 @@
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                            oninput="tcKontrol(this)">
                     <p id="tc_msg" class="text-xs mt-1 hidden"></p>
+                    <!-- Mevcut sakin uyarısı -->
+                    <div id="tc_uyari" class="hidden mt-2 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                        <p class="text-xs font-semibold text-yellow-800 mb-2">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Bu TC sisteminizde kayıtlı:
+                        </p>
+                        <div id="tc_kayitlar" class="space-y-1"></div>
+                        <p class="text-xs text-yellow-700 mt-2">Aynı kişiyse bilgileri otomatik doldurulacak, kaydedince aynı kullanıcı hesabı kullanılacak.</p>
+                        <div class="flex gap-2 mt-2">
+                            <button type="button" onclick="mevcut_ayni()" id="btn_ayni"
+                                    class="bg-yellow-500 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-yellow-600">
+                                Evet, Aynı Kişi — Bilgileri Doldur
+                            </button>
+                            <button type="button" onclick="mevcut_farkli()"
+                                    class="bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg hover:bg-gray-300">
+                                Hayır, Farklı Kişi
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi</label>
@@ -39,13 +57,13 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                    <input type="tel" name="phone" value="{{ resident.phone if resident else '' }}"
+                    <input type="tel" name="phone" id="phone" value="{{ resident.phone if resident else '' }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                            placeholder="05XX XXX XXXX">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
-                    <input type="email" name="email" value="{{ resident.email if resident else '' }}"
+                    <input type="email" name="email" id="email" value="{{ resident.email if resident else '' }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
@@ -85,6 +103,9 @@
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ resident.notes if resident else '' }}</textarea>
             </div>
 
+            <!-- Mevcut kullanıcı ID'si gizli alan -->
+            <input type="hidden" name="mevcut_user_id" id="mevcut_user_id" value="">
+
             <div class="flex gap-3">
                 <button type="submit"
                         class="bg-blue-600 text-white text-sm px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Kaydet</button>
@@ -94,27 +115,6 @@
         </form>
     </div>
 </div>
-
-<!-- Kiracı Dialog -->
-{% if not resident %}
-<div id="kiraciDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-        <h3 class="font-semibold text-gray-800 mb-2">Bu dairede kiracı var mı?</h3>
-        <p class="text-sm text-gray-500 mb-5">Mülk sahibi kaydedildi. Eğer dairede kiracı oturuyorsa hemen ekleyebilirsiniz.</p>
-        <div class="flex gap-3">
-            <button type="button" onclick="kiraciEkle()"
-                    class="flex-1 bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fa-solid fa-plus mr-1"></i> Evet, Kiracı Ekle
-            </button>
-            <button type="button" onclick="kiraciDialogKapat()"
-                    class="flex-1 bg-gray-100 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-200 transition-colors">
-                Hayır, Geç
-            </button>
-        </div>
-    </div>
-</div>
-{% endif %}
-
 {% endblock %}
 
 {% block extra_js %}
@@ -122,15 +122,24 @@
 const APARTMENT_ID = {{ apartment.id }};
 const IS_NEW = {{ 'true' if not resident else 'false' }};
 
-function turDegisti(val) {
-    // Mülk sahibi varsayılan zaten
-}
+let mevcutKayitlar = [];
+let tcKontrolTimer = null;
+
+function turDegisti(val) {}
 
 function tcKontrol(input) {
     const val = input.value.replace(/\D/g, '');
     input.value = val;
     const msg = document.getElementById('tc_msg');
-    if (val.length === 0) { msg.classList.add('hidden'); return; }
+    const uyari = document.getElementById('tc_uyari');
+
+    if (val.length === 0) {
+        msg.classList.add('hidden');
+        uyari.classList.add('hidden');
+        return;
+    }
+
+    // TC format kontrolü
     let hata = null;
     if (val.length !== 11) hata = 'TC Kimlik No 11 haneli olmalıdır.';
     else if (val[0] === '0') hata = 'İlk hane 0 olamaz.';
@@ -140,45 +149,83 @@ function tcKontrol(input) {
         if (s1 % 10 !== d[9]) hata = 'Geçersiz TC Kimlik No.';
         else if (d.slice(0,10).reduce((a,b)=>a+b,0) % 10 !== d[10]) hata = 'Geçersiz TC Kimlik No.';
     }
+
     if (hata) {
         msg.textContent = '✗ ' + hata;
         msg.className = 'text-xs mt-1 text-red-600';
-        input.classList.add('border-red-400'); input.classList.remove('border-green-400');
-    } else {
-        msg.textContent = '✓ Geçerli TC Kimlik No';
-        msg.className = 'text-xs mt-1 text-green-600';
-        input.classList.add('border-green-400'); input.classList.remove('border-red-400');
+        msg.classList.remove('hidden');
+        input.classList.add('border-red-400');
+        input.classList.remove('border-green-400');
+        uyari.classList.add('hidden');
+        return;
     }
+
+    msg.textContent = '✓ Geçerli TC Kimlik No';
+    msg.className = 'text-xs mt-1 text-green-600';
+    msg.classList.remove('hidden');
+    input.classList.add('border-green-400');
+    input.classList.remove('border-red-400');
+
+    // TC geçerliyse sistemde kontrol et
+    if (IS_NEW && val.length === 11) {
+        clearTimeout(tcKontrolTimer);
+        tcKontrolTimer = setTimeout(() => sistemKontrol(val), 600);
+    }
+}
+
+async function sistemKontrol(tc) {
+    try {
+        const res = await fetch(`/site-admin/api/tc-kontrol?tc_no=${tc}`);
+        const data = await res.json();
+        const uyari = document.getElementById('tc_uyari');
+        const kayitlarDiv = document.getElementById('tc_kayitlar');
+
+        if (data.bulundu) {
+            mevcutKayitlar = data.kayitlar;
+            kayitlarDiv.innerHTML = data.kayitlar.map(k =>
+                `<p class="text-xs text-yellow-800">
+                    <i class="fa-solid fa-house mr-1"></i>
+                    <strong>${k.ad_soyad}</strong> — ${k.site} / ${k.blok} / Daire ${k.daire}
+                </p>`
+            ).join('');
+            uyari.classList.remove('hidden');
+        } else {
+            uyari.classList.add('hidden');
+            mevcutKayitlar = [];
+        }
+    } catch(e) {
+        console.error('TC kontrol hatası:', e);
+    }
+}
+
+function mevcut_ayni() {
+    if (mevcutKayitlar.length === 0) return;
+    const k = mevcutKayitlar[0];
+
+    // Bilgileri doldur
+    // Ad soyad ayrıştır
+    const parts = k.ad_soyad.trim().split(' ');
+    const soyad = parts.pop();
+    const ad = parts.join(' ');
+    document.getElementById('first_name').value = ad;
+    document.getElementById('last_name').value = soyad;
+
+    // user_id kaydet
+    document.getElementById('mevcut_user_id').value = k.user_id || '';
+
+    // Uyarıyı kapat
+    document.getElementById('tc_uyari').classList.add('hidden');
+}
+
+function mevcut_farkli() {
+    document.getElementById('tc_uyari').classList.add('hidden');
+    document.getElementById('mevcut_user_id').value = '';
+    mevcutKayitlar = [];
 }
 
 window.addEventListener('load', () => {
     const el = document.getElementById('tc_no');
     if (el && el.value) tcKontrol(el);
 });
-
-// Mülk sahibi kaydedilince kiracı dialog göster
-{% if not resident %}
-document.getElementById('residentForm').addEventListener('submit', function(e) {
-    const turSec = document.getElementById('residentType').value;
-    if (turSec === 'owner') {
-        // Normal submit olsun, sayfa yönlendirildikten sonra dialog göstermek için
-        // query param ile işaret edelim
-        const action = this.action || window.location.href;
-        this.action = action + (action.includes('?') ? '&' : '?') + 'show_tenant=1';
-    }
-});
-{% endif %}
-
-function kiraciEkle() {
-    window.location.href = `/site-admin/apartments/${APARTMENT_ID}/residents/new?type=tenant`;
-}
-
-function kiraciDialogKapat() {
-    document.getElementById('kiraciDialog').classList.add('hidden');
-    window.location.href = `/site-admin/apartments/${APARTMENT_ID}/residents`;
-}
-
-// URL'de show_tenant=1 varsa dialog göster (bir önceki sayfadan geldi)
-// Bu çalışmaz çünkü sayfa yönlendirildi. Bunun yerine flash message yöntemini kullanalım.
 </script>
 {% endblock %}

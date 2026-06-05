@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Demirbaş Defteri{% endblock %}
+{% block page_title %}Demirbaş Defteri{% endblock %}
+
+{% block content %}
+
+<!-- Filtreler -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Blok</label>
+            <select name="blok_id" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tüm Bloklar</option>
+                {% for b in bloklar %}
+                <option value="{{ b.id }}" {{ 'selected' if blok_id == b.id|string }}>{{ b.site.name }} / {{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Kategori</label>
+            <select name="kategori" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tüm Kategoriler</option>
+                {% for k in kategoriler %}
+                <option value="{{ k }}" {{ 'selected' if kategori == k }}>{{ k }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Durum</label>
+            <select name="durum" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tümü</option>
+                <option value="aktif" {{ 'selected' if durum == 'aktif' }}>Aktif</option>
+                <option value="bakim" {{ 'selected' if durum == 'bakim' }}>Bakımda</option>
+                <option value="hurda" {{ 'selected' if durum == 'hurda' }}>Hurdaya Ayrıldı</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fa-solid fa-filter mr-1"></i> Filtrele
+        </button>
+        <a href="{{ url_for('site_admin.demirbaslar') }}" class="bg-gray-100 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-200">Temizle</a>
+        <a href="{{ url_for('site_admin.yeni_demirbas') }}" class="ml-auto bg-green-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-green-700">
+            <i class="fa-solid fa-plus mr-1"></i> Yeni Demirbaş
+        </a>
+    </form>
+</div>
+
+<!-- Garanti Uyarısı -->
+{% set yaklasan = liste | selectattr('garanti_durumu', 'eq', 'yaklasan') | list %}
+{% if yaklasan %}
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-5">
+    <p class="text-sm font-semibold text-yellow-800 mb-2">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i> {{ yaklasan|length }} demirbaşın garantisi 30 gün içinde bitiyor!
+    </p>
+    <div class="space-y-1">
+        {% for d in yaklasan %}
+        <p class="text-xs text-yellow-700">
+            • <strong>{{ d.ad }}</strong> — {{ d.garanti_bitis.strftime('%d.%m.%Y') }} ({{ d.garanti_kalan_gun }} gün kaldı)
+        </p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Liste -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left">Demirbaş</th>
+                    <th class="px-4 py-3 text-left">Konum</th>
+                    <th class="px-4 py-3 text-left">Adet</th>
+                    <th class="px-4 py-3 text-left">Alış Tarihi</th>
+                    <th class="px-4 py-3 text-left">Fiyat</th>
+                    <th class="px-4 py-3 text-left">Garanti</th>
+                    <th class="px-4 py-3 text-left">Durum</th>
+                    <th class="px-4 py-3 text-left">Fatura</th>
+                    <th class="px-4 py-3 text-left">İşlem</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for d in liste %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3">
+                        <p class="font-medium text-gray-800">{{ d.ad }}</p>
+                        <p class="text-xs text-gray-400">{{ d.kategori or '—' }}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs text-blue-600">{{ d.site.name if d.site else '—' }}</p>
+                        <p class="text-xs text-gray-500">{{ d.block.name if d.block else 'Tüm Site' }}</p>
+                    </td>
+                    <td class="px-4 py-3 text-center font-medium">{{ d.adet }}</td>
+                    <td class="px-4 py-3 text-xs">{{ d.alis_tarihi.strftime('%d.%m.%Y') if d.alis_tarihi else '—' }}</td>
+                    <td class="px-4 py-3 text-xs">{{ "%.2f"|format(d.alis_fiyati|float) ~ ' ₺' if d.alis_fiyati else '—' }}</td>
+                    <td class="px-4 py-3">
+                        {% if d.garanti_bitis %}
+                            {% if d.garanti_durumu == 'bitti' %}
+                            <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">Bitti</span>
+                            {% elif d.garanti_durumu == 'yaklasan' %}
+                            <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">{{ d.garanti_kalan_gun }} gün</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Aktif</span>
+                            {% endif %}
+                            <p class="text-xs text-gray-400 mt-0.5">{{ d.garanti_bitis.strftime('%d.%m.%Y') }}</p>
+                        {% else %}
+                            <span class="text-xs text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if d.durum == 'aktif' %}
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Aktif</span>
+                        {% elif d.durum == 'bakim' %}
+                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">Bakımda</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">Hurda</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if d.fatura_dosya %}
+                        <a href="{{ url_for('site_admin.demirbas_fatura', did=d.id) }}" target="_blank"
+                           class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-file-invoice"></i> Görüntüle
+                        </a>
+                        {% else %}
+                        <span class="text-xs text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 flex gap-2">
+                        <a href="{{ url_for('site_admin.edit_demirbas', did=d.id) }}"
+                           class="text-xs text-blue-600 hover:underline">Düzenle</a>
+                        <form method="POST" action="{{ url_for('site_admin.sil_demirbas', did=d.id) }}"
+                              onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+                            <button type="submit" class="text-xs text-red-500 hover:underline">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="px-4 py-8 text-center text-gray-400">Henüz demirbaş kaydı yok.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

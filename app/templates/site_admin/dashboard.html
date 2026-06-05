@@ -8,7 +8,6 @@
 {% if current_user.license %}
   {% set lic = current_user.license %}
   {% if lic.valid_until %}
-    {% set bugun = namespace(val=none) %}
     {% set kalan = (lic.valid_until - today).days %}
     {% if kalan < 0 %}
     <div class="bg-red-50 border border-red-300 rounded-xl px-5 py-4 mb-5 flex items-center gap-3">
@@ -60,82 +59,126 @@
     </div>
 </div>
 {% else %}
-<!-- Site Başlığı -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5 flex items-center gap-4">
-    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-        <i class="fa-solid fa-city text-blue-600 text-xl"></i>
-    </div>
-    <div>
-        <h2 class="font-bold text-gray-800 text-lg">{{ site.name }}</h2>
-        <p class="text-sm text-gray-500">
-            {{ site.neighborhood or '' }}{% if site.district %} / {{ site.district }}{% endif %}{% if site.province %} / {{ site.province }}{% endif %}
-        </p>
-    </div>
-    <div class="ml-auto flex gap-2">
-        <a href="{{ url_for('site_admin.site_setup') }}"
-           class="text-xs text-blue-600 hover:underline flex items-center gap-1">
-            <i class="fa-solid fa-pen"></i> Düzenle
-        </a>
-        <form method="POST" action="{{ url_for('site_admin.delete_site', sid=site.id) }}"
-              onsubmit="return confirm('{{ site.name }} sitesini ve tüm bağlı verileri silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!')">
-            <button type="submit" class="text-xs text-red-500 hover:underline flex items-center gap-1 ml-3">
-                <i class="fa-solid fa-trash"></i> Sil
-            </button>
-        </form>
-        {% if sites|length == 1 %}
-        <a href="{{ url_for('site_admin.new_site') }}"
-           class="text-xs text-green-600 hover:underline flex items-center gap-1 ml-3">
-            <i class="fa-solid fa-plus"></i> Yeni Site
-        </a>
-        {% endif %}
-    </div>
-</div>
 
-<!-- İstatistikler -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    {% set cards = [
-        ('Blok',         stats.blocks,       'fa-building',       'blue'),
-        ('Daire',        stats.apartments,   'fa-door-open',      'purple'),
-        ('Aktif Sakin',  stats.residents,    'fa-people-roof',    'green'),
-        ('Ödenmemiş Aidat', stats.unpaid_dues, 'fa-money-bill-wave', 'red'),
-    ] %}
-    {% for label, val, icon, color in cards %}
-    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center
-            {% if color == 'blue' %}bg-blue-100 text-blue-600
-            {% elif color == 'purple' %}bg-purple-100 text-purple-600
-            {% elif color == 'green' %}bg-green-100 text-green-600
-            {% else %}bg-red-100 text-red-600{% endif %}">
-            <i class="fa-solid {{ icon }}"></i>
+<!-- Site Başlığı + İstatistikler yan yana -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+
+    <!-- Site Başlığı -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                <i class="fa-solid fa-city text-blue-600 text-xl"></i>
+            </div>
+            <div>
+                <h2 class="font-bold text-gray-800">{{ site.name }}</h2>
+                <p class="text-xs text-gray-500">
+                    {{ site.neighborhood or '' }}{% if site.district %} / {{ site.district }}{% endif %}{% if site.province %} / {{ site.province }}{% endif %}
+                </p>
+            </div>
         </div>
-        <div>
-            <p class="text-xl font-bold text-gray-800">{{ val }}</p>
-            <p class="text-xs text-gray-500">{{ label }}</p>
+        <div class="flex gap-3 mt-2">
+            <a href="{{ url_for('site_admin.site_setup') }}"
+               class="flex-1 text-center text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors">
+                <i class="fa-solid fa-pen mr-1"></i> Düzenle
+            </a>
+            {% if sites|length == 1 %}
+            <a href="{{ url_for('site_admin.new_site') }}"
+               class="flex-1 text-center text-xs bg-green-50 text-green-700 hover:bg-green-100 px-3 py-2 rounded-lg transition-colors">
+                <i class="fa-solid fa-plus mr-1"></i> Yeni Site
+            </a>
+            {% endif %}
+            <form method="POST" action="{{ url_for('site_admin.delete_site', sid=site.id) }}"
+                  onsubmit="return confirm('{{ site.name }} sitesini silmek istediğinize emin misiniz?')">
+                <button type="submit" class="text-xs bg-red-50 text-red-500 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
         </div>
     </div>
-    {% endfor %}
+
+    <!-- İstatistikler -->
+    <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+        {% set cards = [
+            ('Blok',            stats.blocks,       'fa-building',        'blue'),
+            ('Daire',           stats.apartments,   'fa-door-open',       'purple'),
+            ('Aktif Sakin',     stats.residents,    'fa-people-roof',     'green'),
+            ('Ödenmemiş Aidat', stats.unpaid_dues,  'fa-money-bill-wave', 'red'),
+        ] %}
+        {% for label, val, icon, color in cards %}
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center
+                {% if color == 'blue' %}bg-blue-100 text-blue-600
+                {% elif color == 'purple' %}bg-purple-100 text-purple-600
+                {% elif color == 'green' %}bg-green-100 text-green-600
+                {% else %}bg-red-100 text-red-600{% endif %}">
+                <i class="fa-solid {{ icon }}"></i>
+            </div>
+            <div>
+                <p class="text-xl font-bold text-gray-800">{{ val }}</p>
+                <p class="text-xs text-gray-500">{{ label }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 <!-- Hızlı Erişim -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
     <a href="{{ url_for('site_admin.blocks') }}"
        class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group">
         <i class="fa-solid fa-building text-blue-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-semibold text-gray-700">Blok & Daire Yönetimi</h3>
+        <h3 class="font-semibold text-gray-700 text-sm">Blok & Daire Yönetimi</h3>
         <p class="text-xs text-gray-400 mt-1">Blok ve daireleri yönetin</p>
     </a>
     <a href="{{ url_for('site_admin.expenses') }}"
        class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all group">
         <i class="fa-solid fa-receipt text-green-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-semibold text-gray-700">Gider Takibi</h3>
+        <h3 class="font-semibold text-gray-700 text-sm">Gider Takibi</h3>
         <p class="text-xs text-gray-400 mt-1">Aylık giderleri kayıt altına alın</p>
     </a>
     <a href="{{ url_for('site_admin.dues') }}"
        class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-purple-300 hover:shadow-md transition-all group">
         <i class="fa-solid fa-money-bill-wave text-purple-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-semibold text-gray-700">Aidat Yönetimi</h3>
+        <h3 class="font-semibold text-gray-700 text-sm">Aidat Yönetimi</h3>
         <p class="text-xs text-gray-400 mt-1">Aidat takibi ve ödeme durumları</p>
     </a>
+    <a href="{{ url_for('site_admin.all_residents') }}"
+       class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-teal-300 hover:shadow-md transition-all group">
+        <i class="fa-solid fa-people-roof text-teal-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-semibold text-gray-700 text-sm">Sakin Yönetimi</h3>
+        <p class="text-xs text-gray-400 mt-1">Tüm sakinleri görüntüleyin</p>
+    </a>
+    <a href="{{ url_for('site_admin.demirbaslar') }}"
+       class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-orange-300 hover:shadow-md transition-all group">
+        <i class="fa-solid fa-screwdriver-wrench text-orange-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-semibold text-gray-700 text-sm">Demirbaş Defteri</h3>
+        <p class="text-xs text-gray-400 mt-1">Demirbaşları ve garantileri takip edin</p>
+    </a>
+    <a href="{{ url_for('site_admin.isletme_projeleri') }}"
+       class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-indigo-300 hover:shadow-md transition-all group">
+        <i class="fa-solid fa-file-invoice text-indigo-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-semibold text-gray-700 text-sm">İşletme Projesi</h3>
+        <p class="text-xs text-gray-400 mt-1">Yıllık işletme bütçesi</p>
+    </a>
+    <a href="{{ url_for('site_admin.report_aidat') }}"
+       class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-pink-300 hover:shadow-md transition-all group">
+        <i class="fa-solid fa-chart-bar text-pink-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-semibold text-gray-700 text-sm">Raporlar</h3>
+        <p class="text-xs text-gray-400 mt-1">Aidat ve gider raporları</p>
+    </a>
+    <a href="{{ url_for('site_admin.duyurular') }}"
+       class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-yellow-300 hover:shadow-md transition-all group">
+        <i class="fa-solid fa-bullhorn text-yellow-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-semibold text-gray-700 text-sm">Duyurular</h3>
+        <p class="text-xs text-gray-400 mt-1">Sakinlere duyuru gönderin</p>
+    </a>
+    <a href="{{ url_for('site_admin.evraklar') }}"
+       class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all group">
+        <i class="fa-solid fa-folder-open text-gray-500 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-semibold text-gray-700 text-sm">Evrak Klasörü</h3>
+        <p class="text-xs text-gray-400 mt-1">Site evrak ve belgeler</p>
+    </a>
 </div>
+
 {% endif %}
 {% endblock %}

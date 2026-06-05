@@ -114,8 +114,13 @@
                     </div>
                     <div class="bg-white border border-gray-200 rounded-lg p-3 text-center">
                         <p class="text-xs text-gray-500 mb-1">Toplam Daire</p>
-                        <p class="font-bold text-gray-800" id="daire_sayisi">0</p>
+                        <p class="font-bold text-gray-800" id="daire_sayisi_goster">0</p>
                     </div>
+                </div>
+                <!-- İşletme projesinden gelince daire başı aidat bilgisi -->
+                <div id="daireBasiBilgi" class="hidden mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                    <p class="text-xs text-green-600 mb-1">Daire Başı Aidat (İşletme Projesinden)</p>
+                    <p class="font-bold text-green-800 text-lg" id="daire_basi_goster">0.00 ₺</p>
                 </div>
             </div>
 
@@ -237,26 +242,31 @@ function isletmedenGetir() {
     const opt = sel.options[sel.selectedIndex];
     if (!opt.value) { alert('Lütfen bir proje seçin.'); return; }
 
-    const normal = parseFloat(opt.dataset.normal) || 0;
+    const daireBasiAidat = parseFloat(opt.dataset.normal) || 0;
     const yil    = parseInt(opt.dataset.yil) || new Date().getFullYear();
     const daire  = parseInt(opt.dataset.daire) || 0;
+    
+    // Toplam = daire başı × daire sayısı
+    const normalToplam = daireBasiAidat * daire;
 
-    document.getElementById('h_normal').value           = normal;
+    document.getElementById('h_normal').value           = normalToplam;
     document.getElementById('h_demirbas').value         = 0;
     document.getElementById('h_yakit').value            = 0;
     document.getElementById('h_isletme_proje_id').value = opt.value;
 
-    document.getElementById('normal_toplam').textContent       = normal.toFixed(2) + ' ₺';
+    document.getElementById('normal_toplam').textContent       = normalToplam.toFixed(2) + ' ₺';
     document.getElementById('demirbas_toplam').textContent     = '0.00 ₺';
     document.getElementById('yakit_toplam_goster').textContent = '0.00 ₺';
-    document.getElementById('genel_toplam').textContent        = normal.toFixed(2) + ' ₺';
-    document.getElementById('daire_sayisi').textContent        = daire > 0 ? daire : '-';
+    document.getElementById('genel_toplam').textContent        = normalToplam.toFixed(2) + ' ₺';
+    document.getElementById('daire_sayisi_goster').textContent = daire > 0 ? daire : '-';
+
+    // Daire başı aidat bilgisini göster
+    document.getElementById('daire_basi_goster').textContent = daireBasiAidat.toFixed(2) + ' ₺';
+    document.getElementById('daireBasiBilgi').classList.remove('hidden');
 
     document.getElementById('f_year').value = yil;
     document.getElementById('sonucDiv').classList.remove('hidden');
     vadeTarihiGuncelle('5');
-
-    alert('İşletme projesinden daire başı aidat (' + normal.toFixed(2) + ' ₺) yüklendi!');
 }
 
 function otomatikDoldur() {
@@ -286,7 +296,7 @@ async function hesapla() {
     document.getElementById('normal_toplam').textContent       = data.normal.toFixed(2) + ' ₺';
     document.getElementById('yakit_toplam_goster').textContent = data.yakit.toFixed(2) + ' ₺';
     document.getElementById('genel_toplam').textContent        = (data.demirbas + data.normal + data.yakit).toFixed(2) + ' ₺';
-    document.getElementById('daire_sayisi').textContent        = data.daire_sayisi;
+    document.getElementById('daire_sayisi_goster').textContent = data.daire_sayisi;
 
     document.getElementById('h_start_date').value = start;
     document.getElementById('h_end_date').value   = end;
@@ -295,6 +305,7 @@ async function hesapla() {
     document.getElementById('h_yakit').value      = data.yakit;
     document.getElementById('h_isletme_proje_id').value = '';
     document.getElementById('yakit_input').value  = data.yakit.toFixed(2);
+    document.getElementById('daireBasiBilgi').classList.add('hidden');
 
     document.getElementById('sonucDiv').classList.remove('hidden');
     vadeTarihiGuncelle('5');
