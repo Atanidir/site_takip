@@ -2117,3 +2117,293 @@ def demirbas_fatura(did):
         d.fatura_dosya, as_attachment=False,
         download_name=d.fatura_orijinal_ad or d.fatura_dosya
     )
+
+# ── Rapor Excel Export ────────────────────────────────────────────────────
+@site_admin_bp.route('/reports/gelir-gider/excel')
+@login_required
+@site_admin_required
+def report_gelir_gider_excel():
+    from app.models.models import Due, Expense, Block, Apartment
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from flask import make_response
+    import io
+
+    site  = get_active_site()
+    now   = datetime.now()
+    yil   = request.args.get('year', now.year, type=int)
+    site_id_filter = request.args.get('site_id', type=int)
+    siteler = get_current_sites()
+    site_ids = [site_id_filter] if site_id_filter else [s.id for s in siteler]
+
+    aylar = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f'{yil} Gelir-Gider'
+
+    # Başlık
+    ws.merge_cells('A1:E1')
+    ws['A1'] = f'ProbissiteYönetim — {yil} Yılı Gelir-Gider Özeti'
+    ws['A1'].font = Font(bold=True, size=14, color='1E3A8A')
+    ws['A1'].alignment = Alignment(horizontal='center')
+
+    # Kolon başlıkları
+    headers = ['Ay', 'Gelir (Tahsilat)', 'Gider', 'Net Bakiye', 'Durum']
+    for i, h in enumerate(headers, 1):
+        cell = ws.cell(row=3, column=i, value=h)
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = PatternFill(fill_type='solid', fgColor='1E3A8A')
+        cell.alignment = Alignment(horizontal='center')
+
+    # Veriler
+    toplam_gelir = toplam_gider = 0
+    for ay in range(1, 13):
+        gelir = db.session.query(db.func.sum(Due.amount)).join(Apartment).join(Block).filter(
+            Block.site_id.in_(site_ids), Due.is_paid == True, Due.paid_date != None,
+            db.extract('year', Due.paid_date) == yil,
+            db.extract('month', Due.paid_date) == ay
+        ).scalar() or 0
+        gider = db.session.query(db.func.sum(Expense.amount)).filter(
+            Expense.site_id.in_(site_ids), Expense.period_year == yil, Expense.period_month == ay
+        ).scalar() or 0
+        gelir = float(gelir); gider = float(gider)
+        fark = gelir - gider
+        toplam_gelir += gelir; toplam_gider += gider
+
+        row = ay + 3
+        ws.cell(row=row, column=1, value=aylar[ay])
+        ws.cell(row=row, column=2, value=gelir).number_format = '#,##0.00'
+        ws.cell(row=row, column=3, value=gider).number_format = '#,##0.00'
+        ws.cell(row=row, column=4, value=fark).number_format = '#,##0.00'
+        ws.cell(row=row, column=5, value='Fazla' if fark >= 0 else 'Açık')
+
+        if ay % 2 == 0:
+            for col in range(1, 6):
+                ws.cell(row=row, column=col).fill = PatternFill(fill_type='solid', fgColor='F1F5F9')
+
+    # Toplam satırı
+    toplam_row = 16
+    ws.cell(row=toplam_row, column=1, value='TOPLAM').font = Font(bold=True)
+    ws.cell(row=toplam_row, column=2, value=toplam_gelir).number_format = '#,##0.00'
+    ws.cell(row=toplam_row, column=2).font = Font(bold=True, color='15803D')
+    ws.cell(row=toplam_row, column=3, value=toplam_gider).number_format = '#,##0.00'
+    ws.cell(row=toplam_row, column=3).font = Font(bold=True, color='DC2626')
+    ws.cell(row=toplam_row, column=4, value=toplam_gelir - toplam_gider).number_format = '#,##0.00'
+    ws.cell(row=toplam_row, column=4).font = Font(bold=True)
+    for col in range(1, 6):
+        ws.cell(row=toplam_row, column=col).fill = PatternFill(fill_type='solid', fgColor='E2E8F0')
+
+    # Kolon genişlikleri
+    ws.column_dimensions['A'].width = 15
+    ws.column_dimensions['B'].width = 20
+    ws.column_dimensions['C'].width = 20
+    ws.column_dimensions['D'].width = 20
+    ws.column_dimensions['E'].width = 12
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=gelir_gider_{yil}.xlsx'
+    return response
+
+
+@site_admin_bp.route('/reports/aidat/excel')
+@login_required
+@site_admin_required
+def report_aidat_excel():
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from flask import make_response
+    import io
+
+    site  = get_active_site()
+    now   = datetime.now()
+    year  = request.args.get('year',  now.year,  type=int)
+    month = request.args.get('month', now.month, type=int)
+    blok_id = request.args.get('blok_id', '', type=str)
+    aylar = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']
+
+    q = Due.query.join(Apartment).join(Block).filter(
+        Block.site_id == site.id, Due.period_year == year, Due.period_month == month
+    )
+    if blok_id:
+        q = q.filter(Block.id == int(blok_id))
+    dues = q.order_by(Block.name, Apartment.number).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Aidat Raporu'
+
+    ws.merge_cells('A1:G1')
+    ws['A1'] = f'ProbissiteYönetim — {aylar[month]} {year} Aidat Raporu'
+    ws['A1'].font = Font(bold=True, size=13, color='1E3A8A')
+    ws['A1'].alignment = Alignment(horizontal='center')
+
+    headers = ['Blok', 'Daire', 'Sakin', 'Tutar', 'Vade', 'Durum', 'Ödeme Tarihi']
+    for i, h in enumerate(headers, 1):
+        cell = ws.cell(row=3, column=i, value=h)
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = PatternFill(fill_type='solid', fgColor='7C3AED')
+
+    for idx, due in enumerate(dues, 4):
+        res = due.resident
+        ws.cell(row=idx, column=1, value=due.apartment.block.name)
+        ws.cell(row=idx, column=2, value=due.apartment.number)
+        ws.cell(row=idx, column=3, value=res.full_name() if res else '—')
+        ws.cell(row=idx, column=4, value=float(due.amount)).number_format = '#,##0.00'
+        ws.cell(row=idx, column=5, value=due.due_date.strftime('%d.%m.%Y') if due.due_date else '—')
+        ws.cell(row=idx, column=6, value='Ödendi' if due.is_paid else 'Bekliyor')
+        ws.cell(row=idx, column=7, value=due.paid_date.strftime('%d.%m.%Y') if due.paid_date else '—')
+        if idx % 2 == 0:
+            for col in range(1, 8):
+                ws.cell(row=idx, column=col).fill = PatternFill(fill_type='solid', fgColor='F5F3FF')
+
+    for col in ['A','B','C','D','E','F','G']:
+        ws.column_dimensions[col].width = 18
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=aidat_raporu_{year}_{month}.xlsx'
+    return response
+
+
+@site_admin_bp.route('/reports/gider/excel')
+@login_required
+@site_admin_required
+def report_gider_excel():
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from flask import make_response
+    import io
+
+    site  = get_active_site()
+    now   = datetime.now()
+    year  = request.args.get('year',  now.year,  type=int)
+    month = request.args.get('month', now.month, type=int)
+    aylar = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']
+
+    expenses = Expense.query.filter_by(site_id=site.id, period_year=year, period_month=month)                .order_by(Expense.expense_date.desc()).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Gider Raporu'
+
+    ws.merge_cells('A1:F1')
+    ws['A1'] = f'ProbissiteYönetim — {aylar[month]} {year} Gider Raporu'
+    ws['A1'].font = Font(bold=True, size=13, color='1E3A8A')
+    ws['A1'].alignment = Alignment(horizontal='center')
+
+    headers = ['Tarih', 'Kategori', 'Tür', 'Açıklama', 'Tutar', 'Blok']
+    for i, h in enumerate(headers, 1):
+        cell = ws.cell(row=3, column=i, value=h)
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = PatternFill(fill_type='solid', fgColor='15803D')
+
+    toplam = 0
+    for idx, exp in enumerate(expenses, 4):
+        ws.cell(row=idx, column=1, value=exp.expense_date.strftime('%d.%m.%Y') if exp.expense_date else '—')
+        ws.cell(row=idx, column=2, value=exp.category.name)
+        ws.cell(row=idx, column=3, value=exp.expense_type.name)
+        ws.cell(row=idx, column=4, value=exp.description or '—')
+        ws.cell(row=idx, column=5, value=float(exp.amount)).number_format = '#,##0.00'
+        ws.cell(row=idx, column=6, value=exp.block.name if exp.block_id else 'Tüm Site')
+        toplam += float(exp.amount)
+        if idx % 2 == 0:
+            for col in range(1, 7):
+                ws.cell(row=idx, column=col).fill = PatternFill(fill_type='solid', fgColor='F0FDF4')
+
+    toplam_row = len(expenses) + 4
+    ws.cell(row=toplam_row, column=4, value='TOPLAM').font = Font(bold=True)
+    ws.cell(row=toplam_row, column=5, value=toplam).number_format = '#,##0.00'
+    ws.cell(row=toplam_row, column=5).font = Font(bold=True, color='DC2626')
+
+    for col in ['A','B','C','D','E','F']:
+        ws.column_dimensions[col].width = 18
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=gider_raporu_{year}_{month}.xlsx'
+    return response
+
+
+@site_admin_bp.route('/reports/sakin/excel')
+@login_required
+@site_admin_required
+def report_sakin_excel():
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from flask import make_response
+    import io
+
+    site = get_active_site()
+    blok_id = request.args.get('blok_id', '', type=str)
+    durum   = request.args.get('durum', 'tumu')
+
+    sakin_listesi = []
+    blok_q = site.blocks.order_by(Block.name)
+    if blok_id:
+        blok_q = blok_q.filter(Block.id == int(blok_id))
+
+    for blk in blok_q.all():
+        for apt in blk.apartments.order_by(Apartment.number).all():
+            aktif  = Resident.query.filter_by(apartment_id=apt.id, is_active=True).all()
+            sahip  = next((r for r in aktif if r.resident_type == 'owner'),  None)
+            kiraci = next((r for r in aktif if r.resident_type == 'tenant'), None)
+            if durum == 'sahip'  and not (sahip and not kiraci): continue
+            if durum == 'kiraci' and not kiraci:                  continue
+            if durum == 'bos'    and (sahip or kiraci):           continue
+            sakin_listesi.append({'blok': blk.name, 'daire': apt.number, 'sahip': sahip, 'kiraci': kiraci})
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Sakin Raporu'
+
+    ws.merge_cells('A1:H1')
+    ws['A1'] = f'ProbissiteYönetim — {site.name} Sakin Raporu'
+    ws['A1'].font = Font(bold=True, size=13, color='1E3A8A')
+    ws['A1'].alignment = Alignment(horizontal='center')
+
+    headers = ['Blok', 'Daire', 'Mülk Sahibi', 'Tel (Sahip)', 'Kiracı', 'Tel (Kiracı)', 'Durum', 'Giriş']
+    for i, h in enumerate(headers, 1):
+        cell = ws.cell(row=3, column=i, value=h)
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = PatternFill(fill_type='solid', fgColor='1D4ED8')
+
+    for idx, item in enumerate(sakin_listesi, 4):
+        ws.cell(row=idx, column=1, value=item['blok'])
+        ws.cell(row=idx, column=2, value=item['daire'])
+        ws.cell(row=idx, column=3, value=item['sahip'].full_name() if item['sahip'] else '—')
+        ws.cell(row=idx, column=4, value=item['sahip'].phone if item['sahip'] else '—')
+        ws.cell(row=idx, column=5, value=item['kiraci'].full_name() if item['kiraci'] else '—')
+        ws.cell(row=idx, column=6, value=item['kiraci'].phone if item['kiraci'] else '—')
+        ws.cell(row=idx, column=7, value='Kiracılı' if item['kiraci'] else ('Sahip' if item['sahip'] else 'Boş'))
+        ws.cell(row=idx, column=8, value=item['sahip'].move_in_date.strftime('%d.%m.%Y') if item['sahip'] and item['sahip'].move_in_date else '—')
+        if idx % 2 == 0:
+            for col in range(1, 9):
+                ws.cell(row=idx, column=col).fill = PatternFill(fill_type='solid', fgColor='EFF6FF')
+
+    for col in ['A','B','C','D','E','F','G','H']:
+        ws.column_dimensions[col].width = 18
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=sakin_raporu.xlsx'
+    return response
+
+# ── Rapor Excel Export ────────────────────────────────────────────────────
