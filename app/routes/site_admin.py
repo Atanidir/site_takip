@@ -1138,6 +1138,78 @@ def report_gider():
         blocks=blocks, categories=categories, exp_types=exp_types)
 
 
+
+
+@site_admin_bp.route('/reports/gelir-gider')
+@login_required
+@site_admin_required
+def report_gelir_gider():
+    from app.models.models import Due, Expense, Block, Apartment
+    site  = get_active_site()
+    now   = datetime.now()
+    if not site:
+        return redirect(url_for('site_admin.dashboard'))
+
+    siteler = get_current_sites()
+    site_ids = [s.id for s in siteler]
+
+    yil  = request.args.get('year',  now.year,  type=int)
+    site_id_filter = request.args.get('site_id', type=int)
+
+    if site_id_filter:
+        aktif_site_ids = [site_id_filter]
+    else:
+        aktif_site_ids = site_ids
+
+    # Aylık özet
+    aylik_ozet = []
+    for ay in range(1, 13):
+        # Gelir: O ay ödenen aidatlar
+        gelir = db.session.query(db.func.sum(Due.amount)).join(Apartment).join(Block).filter(
+            Block.site_id.in_(aktif_site_ids),
+            Due.is_paid == True,
+            Due.paid_date != None,
+            db.extract('year', Due.paid_date) == yil,
+            db.extract('month', Due.paid_date) == ay
+        ).scalar() or 0
+
+        # Gider: O ay yapılan giderler
+        gider = db.session.query(db.func.sum(Expense.amount)).filter(
+            Expense.site_id.in_(aktif_site_ids),
+            Expense.period_year == yil,
+            Expense.period_month == ay
+        ).scalar() or 0
+
+        aylik_ozet.append({
+            'ay': ay,
+            'gelir': float(gelir),
+            'gider': float(gider),
+            'fark': float(gelir) - float(gider)
+        })
+
+    # Yıllık toplamlar
+    toplam_gelir = sum(a['gelir'] for a in aylik_ozet)
+    toplam_gider = sum(a['gider'] for a in aylik_ozet)
+    toplam_fark  = toplam_gelir - toplam_gider
+
+    # Bekleyen aidatlar
+    bekleyen = db.session.query(db.func.sum(Due.amount)).join(Apartment).join(Block).filter(
+        Block.site_id.in_(aktif_site_ids),
+        Due.is_paid == False,
+        Due.period_year == yil
+    ).scalar() or 0
+
+    return render_template('site_admin/report_gelir_gider.html',
+        site=site, siteler=siteler, yil=yil,
+        site_id=site_id_filter,
+        aylik_ozet=aylik_ozet,
+        toplam_gelir=toplam_gelir,
+        toplam_gider=toplam_gider,
+        toplam_fark=toplam_fark,
+        bekleyen=float(bekleyen),
+        today=date.today()
+    )
+
 @site_admin_bp.route('/reports/sakin')
 @login_required
 @site_admin_required

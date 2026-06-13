@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Gelir-Gider Özeti{% endblock %}
+{% block page_title %}Gelir-Gider Özeti{% endblock %}
+
+{% block content %}
+
+<!-- Rapor Linkleri -->
+<div class="flex gap-2 mb-5">
+    <a href="{{ url_for('site_admin.report_aidat') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-purple-400">Aidat</a>
+    <a href="{{ url_for('site_admin.report_gider') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-green-400">Gider</a>
+    <a href="{{ url_for('site_admin.report_sakin') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-blue-400">Sakin</a>
+    <a href="{{ url_for('site_admin.report_gelir_gider') }}"
+       class="px-4 py-2 rounded-lg text-sm font-medium bg-orange-600 text-white">Gelir-Gider</a>
+</div>
+
+<!-- Filtreler -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Yıl</label>
+            <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {% for y in range(2023, 2029) %}
+                <option value="{{ y }}" {{ 'selected' if y == yil }}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if siteler|length > 1 %}
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Site</label>
+            <select name="site_id" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tüm Siteler</option>
+                {% for s in siteler %}
+                <option value="{{ s.id }}" {{ 'selected' if site_id == s.id }}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <button type="submit" class="bg-blue-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fa-solid fa-filter mr-1"></i> Filtrele
+        </button>
+    </form>
+</div>
+
+<!-- Yıllık Özet Kartları -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <i class="fa-solid fa-arrow-trend-up text-green-600"></i>
+            </div>
+            <p class="text-xs text-green-600 font-medium">Toplam Gelir</p>
+        </div>
+        <p class="text-2xl font-bold text-green-700">{{ "%.2f"|format(toplam_gelir) }} ₺</p>
+        <p class="text-xs text-green-500 mt-1">{{ yil }} yılı tahsilat</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                <i class="fa-solid fa-arrow-trend-down text-red-600"></i>
+            </div>
+            <p class="text-xs text-red-600 font-medium">Toplam Gider</p>
+        </div>
+        <p class="text-2xl font-bold text-red-700">{{ "%.2f"|format(toplam_gider) }} ₺</p>
+        <p class="text-xs text-red-500 mt-1">{{ yil }} yılı giderler</p>
+    </div>
+    <div class="{% if toplam_fark >= 0 %}bg-blue-50 border border-blue-200{% else %}bg-orange-50 border border-orange-200{% endif %} rounded-xl p-4">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-lg {% if toplam_fark >= 0 %}bg-blue-100{% else %}bg-orange-100{% endif %} flex items-center justify-center">
+                <i class="fa-solid fa-scale-balanced {% if toplam_fark >= 0 %}text-blue-600{% else %}text-orange-600{% endif %}"></i>
+            </div>
+            <p class="text-xs {% if toplam_fark >= 0 %}text-blue-600{% else %}text-orange-600{% endif %} font-medium">Net Bakiye</p>
+        </div>
+        <p class="text-2xl font-bold {% if toplam_fark >= 0 %}text-blue-700{% else %}text-orange-700{% endif %}">
+            {{ "%.2f"|format(toplam_fark) }} ₺
+        </p>
+        <p class="text-xs {% if toplam_fark >= 0 %}text-blue-500{% else %}text-orange-500{% endif %} mt-1">
+            {{ 'Fazla' if toplam_fark >= 0 else 'Açık' }}
+        </p>
+    </div>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
+                <i class="fa-solid fa-clock text-yellow-600"></i>
+            </div>
+            <p class="text-xs text-yellow-600 font-medium">Bekleyen Aidat</p>
+        </div>
+        <p class="text-2xl font-bold text-yellow-700">{{ "%.2f"|format(bekleyen) }} ₺</p>
+        <p class="text-xs text-yellow-500 mt-1">{{ yil }} yılı tahsil edilmedi</p>
+    </div>
+</div>
+
+<!-- Aylık Tablo -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-700">{{ yil }} Yılı Aylık Gelir-Gider Tablosu</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left">Ay</th>
+                    <th class="px-4 py-3 text-right text-green-700">Gelir (Tahsilat)</th>
+                    <th class="px-4 py-3 text-right text-red-700">Gider</th>
+                    <th class="px-4 py-3 text-right">Net</th>
+                    <th class="px-4 py-3 text-left">Durum</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% set aylar = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'] %}
+                {% for a in aylik_ozet %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-700">{{ aylar[a.ay] }}</td>
+                    <td class="px-4 py-3 text-right font-medium text-green-700">
+                        {% if a.gelir > 0 %}{{ "%.2f"|format(a.gelir) }} ₺{% else %}<span class="text-gray-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right font-medium text-red-700">
+                        {% if a.gider > 0 %}{{ "%.2f"|format(a.gider) }} ₺{% else %}<span class="text-gray-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right font-bold {{ 'text-blue-700' if a.fark >= 0 else 'text-orange-700' }}">
+                        {% if a.gelir > 0 or a.gider > 0 %}
+                        {{ "%.2f"|format(a.fark) }} ₺
+                        {% else %}
+                        <span class="text-gray-300">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if a.gelir > 0 or a.gider > 0 %}
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 max-w-24">
+                                {% if a.gelir + a.gider > 0 %}
+                                <div class="bg-green-500 h-2 rounded-full" style="width: {{ [[(a.gelir / (a.gelir + a.gider) * 100)|int, 100]|min, 0]|max }}%"></div>
+                                {% endif %}
+                            </div>
+                            {% if a.fark >= 0 %}
+                            <span class="text-xs text-green-600">Fazla</span>
+                            {% else %}
+                            <span class="text-xs text-orange-600">Açık</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="bg-gray-50 font-bold text-sm">
+                <tr>
+                    <td class="px-4 py-3 text-gray-700">TOPLAM</td>
+                    <td class="px-4 py-3 text-right text-green-700">{{ "%.2f"|format(toplam_gelir) }} ₺</td>
+                    <td class="px-4 py-3 text-right text-red-700">{{ "%.2f"|format(toplam_gider) }} ₺</td>
+                    <td class="px-4 py-3 text-right {{ 'text-blue-700' if toplam_fark >= 0 else 'text-orange-700' }}">{{ "%.2f"|format(toplam_fark) }} ₺</td>
+                    <td class="px-4 py-3"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}
