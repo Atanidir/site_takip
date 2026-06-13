@@ -2407,3 +2407,313 @@ def report_sakin_excel():
     return response
 
 # ── Rapor Excel Export ────────────────────────────────────────────────────
+
+# ── Rapor PDF Export ──────────────────────────────────────────────────────
+@site_admin_bp.route('/reports/gelir-gider/pdf')
+@login_required
+@site_admin_required
+def report_gelir_gider_pdf():
+    from app.models.models import Due, Expense, Block, Apartment
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.colors import HexColor, white
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from flask import make_response
+    import io
+
+    try:
+        pdfmetrics.registerFont(TTFont('LiberationSans', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+        pdfmetrics.registerFont(TTFont('LiberationSans-Bold', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'))
+        font_normal = 'LiberationSans'
+        font_bold = 'LiberationSans-Bold'
+    except:
+        font_normal = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
+
+    site  = get_active_site()
+    now   = datetime.now()
+    yil   = request.args.get('year', now.year, type=int)
+    site_id_filter = request.args.get('site_id', type=int)
+    siteler = get_current_sites()
+    site_ids = [site_id_filter] if site_id_filter else [s.id for s in siteler]
+    aylar = ['','Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik']
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    navy = HexColor('#1e3a8a')
+    story = []
+
+    baslik = ParagraphStyle('B', fontName=font_bold, fontSize=14, textColor=navy, alignment=TA_CENTER, spaceAfter=4)
+    story.append(Paragraph(f'ProbissiteYonetim — {yil} Yili Gelir-Gider Ozeti', baslik))
+    story.append(Spacer(1, 0.5*cm))
+
+    tablo_data = [['Ay', 'Gelir (TL)', 'Gider (TL)', 'Net (TL)']]
+    toplam_gelir = toplam_gider = 0
+
+    for ay in range(1, 13):
+        gelir = db.session.query(db.func.sum(Due.amount)).join(Apartment).join(Block).filter(
+            Block.site_id.in_(site_ids), Due.is_paid == True, Due.paid_date != None,
+            db.extract('year', Due.paid_date) == yil,
+            db.extract('month', Due.paid_date) == ay
+        ).scalar() or 0
+        gider = db.session.query(db.func.sum(Expense.amount)).filter(
+            Expense.site_id.in_(site_ids), Expense.period_year == yil, Expense.period_month == ay
+        ).scalar() or 0
+        gelir = float(gelir); gider = float(gider)
+        fark = gelir - gider
+        toplam_gelir += gelir; toplam_gider += gider
+        tablo_data.append([aylar[ay], f'{gelir:,.2f}', f'{gider:,.2f}', f'{fark:,.2f}'])
+
+    tablo_data.append(['TOPLAM', f'{toplam_gelir:,.2f}', f'{toplam_gider:,.2f}', f'{toplam_gelir-toplam_gider:,.2f}'])
+
+    t = Table(tablo_data, colWidths=[4*cm, 4*cm, 4*cm, 4*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), navy), ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), font_bold), ('FONTNAME', (0,1), (-1,-1), font_normal),
+        ('FONTNAME', (0,-1), (-1,-1), font_bold), ('BACKGROUND', (0,-1), (-1,-1), HexColor('#e2e8f0')),
+        ('FONTSIZE', (0,0), (-1,-1), 9), ('GRID', (0,0), (-1,-1), 0.5, HexColor('#cbd5e1')),
+        ('PADDING', (0,0), (-1,-1), 6), ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+        ('ROWBACKGROUNDS', (0,1), (-1,-2), [white, HexColor('#f8fafc')]),
+    ]))
+    story.append(t)
+    doc.build(story)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=gelir_gider_{yil}.pdf'
+    return response
+
+
+@site_admin_bp.route('/reports/aidat/pdf')
+@login_required
+@site_admin_required
+def report_aidat_pdf():
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.colors import HexColor, white
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from flask import make_response
+    import io
+
+    try:
+        pdfmetrics.registerFont(TTFont('LiberationSans', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+        pdfmetrics.registerFont(TTFont('LiberationSans-Bold', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'))
+        font_normal = 'LiberationSans'
+        font_bold = 'LiberationSans-Bold'
+    except:
+        font_normal = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
+
+    site  = get_active_site()
+    now   = datetime.now()
+    year  = request.args.get('year',  now.year,  type=int)
+    month = request.args.get('month', now.month, type=int)
+    blok_id = request.args.get('blok_id', '', type=str)
+    aylar = ['','Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik']
+
+    q = Due.query.join(Apartment).join(Block).filter(
+        Block.site_id == site.id, Due.period_year == year, Due.period_month == month
+    )
+    if blok_id:
+        q = q.filter(Block.id == int(blok_id))
+    dues = q.order_by(Block.name, Apartment.number).all()
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    navy = HexColor('#7c3aed')
+    story = []
+
+    baslik = ParagraphStyle('B', fontName=font_bold, fontSize=14, textColor=navy, alignment=TA_CENTER, spaceAfter=4)
+    story.append(Paragraph(f'ProbissiteYonetim — {aylar[month]} {year} Aidat Raporu', baslik))
+    story.append(Spacer(1, 0.5*cm))
+
+    tablo_data = [['Blok', 'Daire', 'Sakin', 'Tutar (TL)', 'Vade', 'Durum']]
+    for due in dues:
+        res = due.resident
+        tablo_data.append([
+            due.apartment.block.name,
+            due.apartment.number,
+            res.full_name() if res else '—',
+            f'{float(due.amount):,.2f}',
+            due.due_date.strftime('%d.%m.%Y') if due.due_date else '—',
+            'Odendi' if due.is_paid else 'Bekliyor'
+        ])
+
+    t = Table(tablo_data, colWidths=[3*cm, 2.5*cm, 5*cm, 3*cm, 3*cm, 2.5*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), navy), ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), font_bold), ('FONTNAME', (0,1), (-1,-1), font_normal),
+        ('FONTSIZE', (0,0), (-1,-1), 8), ('GRID', (0,0), (-1,-1), 0.5, HexColor('#e2e8f0')),
+        ('PADDING', (0,0), (-1,-1), 5), ('ALIGN', (3,0), (3,-1), 'RIGHT'),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [white, HexColor('#f5f3ff')]),
+    ]))
+    story.append(t)
+    doc.build(story)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=aidat_raporu_{year}_{month}.pdf'
+    return response
+
+
+@site_admin_bp.route('/reports/gider/pdf')
+@login_required
+@site_admin_required
+def report_gider_pdf():
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.colors import HexColor, white
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from flask import make_response
+    import io
+
+    try:
+        pdfmetrics.registerFont(TTFont('LiberationSans', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+        pdfmetrics.registerFont(TTFont('LiberationSans-Bold', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'))
+        font_normal = 'LiberationSans'
+        font_bold = 'LiberationSans-Bold'
+    except:
+        font_normal = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
+
+    site  = get_active_site()
+    now   = datetime.now()
+    year  = request.args.get('year',  now.year,  type=int)
+    month = request.args.get('month', now.month, type=int)
+    aylar = ['','Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik']
+
+    expenses = Expense.query.filter_by(site_id=site.id, period_year=year, period_month=month)                .order_by(Expense.expense_date.desc()).all()
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    green = HexColor('#15803d')
+    story = []
+
+    baslik = ParagraphStyle('B', fontName=font_bold, fontSize=14, textColor=green, alignment=TA_CENTER, spaceAfter=4)
+    story.append(Paragraph(f'ProbissiteYonetim — {aylar[month]} {year} Gider Raporu', baslik))
+    story.append(Spacer(1, 0.5*cm))
+
+    tablo_data = [['Tarih', 'Kategori', 'Tur', 'Aciklama', 'Tutar (TL)']]
+    toplam = 0
+    for exp in expenses:
+        tablo_data.append([
+            exp.expense_date.strftime('%d.%m.%Y') if exp.expense_date else '—',
+            exp.category.name,
+            exp.expense_type.name,
+            (exp.description or '—')[:30],
+            f'{float(exp.amount):,.2f}'
+        ])
+        toplam += float(exp.amount)
+    tablo_data.append(['', '', '', 'TOPLAM', f'{toplam:,.2f}'])
+
+    t = Table(tablo_data, colWidths=[2.5*cm, 3.5*cm, 3.5*cm, 5*cm, 3*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), green), ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), font_bold), ('FONTNAME', (0,1), (-1,-1), font_normal),
+        ('FONTNAME', (0,-1), (-1,-1), font_bold), ('BACKGROUND', (0,-1), (-1,-1), HexColor('#dcfce7')),
+        ('FONTSIZE', (0,0), (-1,-1), 8), ('GRID', (0,0), (-1,-1), 0.5, HexColor('#e2e8f0')),
+        ('PADDING', (0,0), (-1,-1), 5), ('ALIGN', (4,0), (4,-1), 'RIGHT'),
+        ('ROWBACKGROUNDS', (0,1), (-1,-2), [white, HexColor('#f0fdf4')]),
+    ]))
+    story.append(t)
+    doc.build(story)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=gider_raporu_{year}_{month}.pdf'
+    return response
+
+
+@site_admin_bp.route('/reports/sakin/pdf')
+@login_required
+@site_admin_required
+def report_sakin_pdf():
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.colors import HexColor, white
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from flask import make_response
+    import io
+
+    try:
+        pdfmetrics.registerFont(TTFont('LiberationSans', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+        pdfmetrics.registerFont(TTFont('LiberationSans-Bold', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'))
+        font_normal = 'LiberationSans'
+        font_bold = 'LiberationSans-Bold'
+    except:
+        font_normal = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
+
+    site = get_active_site()
+    blok_id = request.args.get('blok_id', '', type=str)
+    durum   = request.args.get('durum', 'tumu')
+
+    sakin_listesi = []
+    blok_q = site.blocks.order_by(Block.name)
+    if blok_id:
+        blok_q = blok_q.filter(Block.id == int(blok_id))
+
+    for blk in blok_q.all():
+        for apt in blk.apartments.order_by(Apartment.number).all():
+            aktif  = Resident.query.filter_by(apartment_id=apt.id, is_active=True).all()
+            sahip  = next((r for r in aktif if r.resident_type == 'owner'),  None)
+            kiraci = next((r for r in aktif if r.resident_type == 'tenant'), None)
+            if durum == 'sahip'  and not (sahip and not kiraci): continue
+            if durum == 'kiraci' and not kiraci:                  continue
+            if durum == 'bos'    and (sahip or kiraci):           continue
+            sakin_listesi.append({'blok': blk.name, 'daire': apt.number, 'sahip': sahip, 'kiraci': kiraci})
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    blue = HexColor('#1d4ed8')
+    story = []
+
+    baslik = ParagraphStyle('B', fontName=font_bold, fontSize=14, textColor=blue, alignment=TA_CENTER, spaceAfter=4)
+    story.append(Paragraph(f'ProbissiteYonetim — {site.name} Sakin Raporu', baslik))
+    story.append(Spacer(1, 0.5*cm))
+
+    tablo_data = [['Blok', 'Daire', 'Mulk Sahibi', 'Kiraci', 'Durum']]
+    for item in sakin_listesi:
+        tablo_data.append([
+            item['blok'],
+            item['daire'],
+            item['sahip'].full_name() if item['sahip'] else '—',
+            item['kiraci'].full_name() if item['kiraci'] else '—',
+            'Kiracili' if item['kiraci'] else ('Sahip' if item['sahip'] else 'Bos')
+        ])
+
+    t = Table(tablo_data, colWidths=[3*cm, 2.5*cm, 5*cm, 5*cm, 2.5*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), blue), ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), font_bold), ('FONTNAME', (0,1), (-1,-1), font_normal),
+        ('FONTSIZE', (0,0), (-1,-1), 8), ('GRID', (0,0), (-1,-1), 0.5, HexColor('#e2e8f0')),
+        ('PADDING', (0,0), (-1,-1), 5),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [white, HexColor('#eff6ff')]),
+    ]))
+    story.append(t)
+    doc.build(story)
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=sakin_raporu.pdf'
+    return response

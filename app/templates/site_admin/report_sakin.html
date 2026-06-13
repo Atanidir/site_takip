@@ -16,10 +16,15 @@
        class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-blue-400">Gelir-Gider</a>
 </div>
 
-<div class="flex justify-end mb-3">
+<div class="flex justify-end gap-2 mb-3">
     <a href="{{ url_for('site_admin.report_sakin_excel', blok_id=blok_id, durum=durum) }}"
        class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
-        <i class="fa-solid fa-file-excel"></i> Excel İndir
+        <i class="fa-solid fa-file-excel"></i> Excel
+    </a>
+    <a href="{{ url_for('site_admin.report_sakin_pdf', blok_id=blok_id, durum=durum) }}"
+       target="_blank"
+       class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
+        <i class="fa-solid fa-file-pdf"></i> PDF
     </a>
 </div>
 <!-- Filtreler -->
